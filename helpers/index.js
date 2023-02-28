@@ -201,7 +201,7 @@ exports.cleanString = (string) => {
 //CLOUDINARY FILE UPLOADS
 exports.imageUploader = async (file) =>{
     const {secure_url} = await cloudinary.uploader.upload(file, {
-        folder: "ride_service_images",
+        folder: "hub_service_images",
         // compressing images
         transformation: [
             {width: 480, aspect_ratio: "1.0", crop: 'fill'},
@@ -222,7 +222,7 @@ exports.imageUploader = async (file) =>{
 exports.fileUploader = async (file) =>{
     const {secure_url} = await cloudinary.uploader.upload(file,
       {
-        folder: "ride_service_docs", 
+        folder: "hub_service_docs", 
         secure: true
       },
     )

@@ -1,5 +1,7 @@
-const User = require("./user");
+const Hub = require("./hub");
+const Inspector = require("./inspector");
 
 module.exports = {
-  User,
+  Hub,
+  Inspector
 };
