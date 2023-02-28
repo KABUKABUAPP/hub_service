@@ -6,7 +6,7 @@ const { fetchUser, fetchUserById } = require("./controller");
 
 const router = Router();
 
-router.get("/fetch-user", authTest, fetchUser);
-router.get("/fetch-user/:userId", fetchUserById);
+// router.get("/fetch-user", authTest, fetchUser);
+// router.get("/fetch-user/:userId", fetchUserById);
 
 module.exports = router;
