@@ -11,7 +11,9 @@ const schema = mongoose.Schema(
     city: { type: String, sparse: true },
     state: { type: String, sparse: true },
     country: { type: String, default: 'Nigeria' },
-    profile_image: { type: String, sparse: true }
+    password: { type: String, },
+    access_token: { type: String, },
+    regCompleted: {type: Boolean, default: false}
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

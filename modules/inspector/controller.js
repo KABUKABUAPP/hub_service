@@ -1,4 +1,4 @@
-const { responseObject, authorFewPopulate } = require("../../helpers");
+const { responseObject, authorFewPopulate, formatPhoneNumber } = require("../../helpers");
 const {
   HTTP_OK,
   HTTP_CREATED,
@@ -6,19 +6,26 @@ const {
   HTTP_NOT_FOUND,
   HTTP_BAD_REQUEST,
 } = require("../../helpers/httpCodes");
-const { fetchUserService, fetchUserByIdService } = require("./service");
+const { 
+  enterPhoneOrEmail,
+  createPassword,
+  login,
+  fetchDriverByCode,
+  approveDeclineDriverApplication
+} = require("./service");
 
-exports.fetchUser = async (req, res) => {
+exports.enterPhoneOrEmailController = async (req, res) => {
   try {
-    const response = await fetchUserService(req.userId);
-    console.log("User: ", response);
-
+    const payload = {
+      email_or_number: formatPhoneNumber(req.body.email_or_number),
+    }
+    const {status, code, message, data} = await enterPhoneOrEmail(payload);
     return responseObject(
       res,
-      response.code,
-      response.status,
-      response.data,
-      response.message
+      code,
+      status,
+      data,
+      message
     );
   } catch (error) {
     console.log(error);
@@ -31,19 +38,20 @@ exports.fetchUser = async (req, res) => {
     );
   }
 };
-exports.fetchUserById = async (req, res) => {
-  const { userId } = req.params;
+
+exports.createPasswordController = async (req, res) => {
   try {
-    const response = await fetchUserService(userId);
-
-    console.log("User: ", response);
-
+    const payload = {
+      inspector: req.user,
+      password: req.body.password,
+    }
+    const {status, code, message, data} = await createPassword(payload);
     return responseObject(
       res,
-      response.code,
-      response.status,
-      response.data,
-      response.message
+      code,
+      status,
+      data,
+      message
     );
   } catch (error) {
     console.log(error);
@@ -56,19 +64,72 @@ exports.fetchUserById = async (req, res) => {
     );
   }
 };
-exports.fetchUserById = async (req, res) => {
-  const { userId } = req.params;
+
+exports.loginController = async (req, res) => {
   try {
-    const response = await fetchUserByIdService(userId);
-
-    console.log("User: ", response);
-
+    const payload = {
+      phone_number: formatPhoneNumber(String(req.body.phone_number).toLowerCase()),
+      password: req.body.password,
+    }
+    const {status, code, message, data} = await login(payload);
     return responseObject(
       res,
-      response.code,
-      response.status,
-      response.data,
-      response.message
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.fetchDriverController = async (req, res) => {
+  try {
+    const payload = {
+      code: req.query.inspection_code
+    }
+    const {status, code, message, data} = await fetchDriverByCode(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.approveDeclineDriverApplicationController = async (req, res) => {
+  try {
+    const payload = {
+      driver_id: req.params.id,
+      approval_status: req.body.approval_status,
+      reason: req.body.reason
+    }
+    const {status, code, message, data} = await approveDeclineDriverApplication(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
     );
   } catch (error) {
     console.log(error);

@@ -1,4 +1,4 @@
-const { responseObject, authorFewPopulate } = require("../../../helpers");
+const { responseObject, authorFewPopulate, formatPhoneNumber } = require("../../../helpers");
 const {
   HTTP_OK,
   HTTP_CREATED,
@@ -18,7 +18,7 @@ exports.addNewInspectorController = async (req, res, next) => {
       first_name: String(req.body.first_name).toLowerCase(),
       last_name: String(req.body.last_name).toLowerCase(),
       house_address: String(req.body.house_address).toLowerCase(),
-      phone_number: String(req.body.phone_number).toLowerCase(),
+      phone_number: formatPhoneNumber(String(req.body.phone_number).toLowerCase()),
       city: String(req.body.city).toLowerCase(),
       state: String(req.body.state).toLowerCase(),
       email: String(req.body.email).toLowerCase()

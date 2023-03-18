@@ -1,55 +1,78 @@
-// // const jwt = require('jsonwebtoken');
-// const { responseObject, authorFewPopulate } = require("../helpers");
-// const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED } = require("../helpers/httpCodes");
-// // const Users = require("../models/user");
-// // const db = require('../models');
-// // const Users = db.users;
+const jwt = require('jsonwebtoken');
+const { responseObject, authorFewPopulate, verifyJwt } = require("../helpers");
+const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED, HTTP_SERVER_ERROR } = require("../helpers/httpCodes");
+const {Inspector} = require("../models");
 
-// exports.isAuthorized = async (req, _, next) => {
-//   try {
-//     const token =
-//     req.headers.authorization && req.headers.authorization.split(" ")[1];
+exports.isAuthorized = async (req, _res, next) => {
+  try {
+    const token =
+    req.headers.authorization && req.headers.authorization.split(" ")[1];
 
-//     if (!token) {
-//       return next( 
-//         {
-//           status: "error",
-//           code: HTTP_UNAUTHORIZED,
-//           message:"Authorization token is missing.",
-//         }
-//       );
-//     }
+    if (!token) {
+      const respo = 
+        {
+          status: "error",
+          code: HTTP_UNAUTHORIZED,
+          message:"Authorization token is missing.",
+          data: null,
 
-//    const {id} = verifyJwt(token);
+        }
+      
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )
+    }
 
 
-//     const existingUser =  await User.findById(id);
-//     if(!existingUser){
-//       return next( 
-//         {
-//           status: "error",
-//           code: HTTP_UNAUTHORIZED ,
-//           message:'Unauthorized to perform this action',
-//         }
-//       );
-//     } else {
-//       req.user = existingUser
-//       req.token = token,
-//       req.userId = existingUser._id
-//       return next()
-//     }
+   const {id} = verifyJwt(token);
+    if (!id) {
+      const respo = 
+        {
+          status: "error",
+          code: HTTP_BAD_REQUEST,
+          message:"Invalid jwt passed",
+          data: null,
 
-//   } catch (error) {
-//     console.log(error);
-//     return {
-//       status: "error",
-//       code: HTTP_SERVER_ERROR,
-//       message: error.message,
-//       data: error
-//     }
-//   }
-// }
+        }
+      
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )
+    }
 
+
+    const existingInspector =  await Inspector.findById(id);
+    // console.log(existingUser);
+    if(!existingInspector){
+       const respo =  {
+          status: "error",
+          code: HTTP_UNAUTHORIZED ,
+          message:'Unauthorized to perform this action',
+        }
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )      
+    } else {
+      req.user = existingInspector
+      req.token = token,
+      req.userId = existingInspector._id
+      return next()
+    }
+    
+
+  } catch (error) {
+    console.log(error);
+    const respo = {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message,
+      data: error
+    }
+    return next(
+      responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+    ) 
+  }
+}
 // exports.authTest = async (req, res, next) => {
 //   try {
 //     console.log("req#@", req.headers);
