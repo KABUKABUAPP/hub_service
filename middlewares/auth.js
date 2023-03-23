@@ -1,151 +1,174 @@
-// const jwt = require('jsonwebtoken');
-const { responseObject, authorFewPopulate } = require("../helpers");
-const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED } = require("../helpers/httpCodes");
-const Users = require("../models/user");
-// const db = require('../models');
-// const Users = db.users;
+const jwt = require('jsonwebtoken');
+const { responseObject, authorFewPopulate, verifyJwt } = require("../helpers");
+const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED, HTTP_SERVER_ERROR } = require("../helpers/httpCodes");
+const {Inspector} = require("../models");
 
-exports.isAuthorized = async (req, _, next) => {
+exports.isAuthorized = async (req, _res, next) => {
   try {
     const token =
     req.headers.authorization && req.headers.authorization.split(" ")[1];
 
     if (!token) {
-      return next( 
+      const respo = 
         {
           status: "error",
           code: HTTP_UNAUTHORIZED,
           message:"Authorization token is missing.",
+          data: null,
+
         }
-      );
+      
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )
     }
 
+
    const {id} = verifyJwt(token);
-
-
-    const existingUser =  await User.findById(id);
-    if(!existingUser){
-      return nextnext( 
+    if (!id) {
+      const respo = 
         {
+          status: "error",
+          code: HTTP_BAD_REQUEST,
+          message:"Invalid jwt passed",
+          data: null,
+
+        }
+      
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )
+    }
+
+
+    const existingInspector =  await Inspector.findById(id);
+    // console.log(existingUser);
+    if(!existingInspector){
+       const respo =  {
           status: "error",
           code: HTTP_UNAUTHORIZED ,
           message:'Unauthorized to perform this action',
         }
-      );
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )      
     } else {
-      req.user = existingUser
+      req.user = existingInspector
       req.token = token,
-      req.userId = existingUser._id
+      req.userId = existingInspector._id
       return next()
     }
+    
 
   } catch (error) {
     console.log(error);
-    return {
+    const respo = {
       status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message,
       data: error
     }
+    return next(
+      responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+    ) 
   }
 }
-
-exports.authTest = async (req, res, next) => {
-  try {
-    console.log("req#@", req.headers);
-    let id = req.headers.authid;
-    console.log("du#", id);
-
-    // const id = "115";
-    if (!id) {
-      return responseObject(
-        res,
-        HTTP_UNAUTHORIZED,
-        "error",
-        null,
-        "Invalid or expired token"
-      );
-    }
-
-    let user = await Users.findOne({
-      _id: id,
-    });
-    // .populate({
-    //   path: 'vybers',
-    //   populate: {
-    //     path: 'vyber',
-    //     select: authorFewPopulate()
-    //   }
-    // });
-
-    if (!user) {
-      return responseObject(
-        res,
-        HTTP_UNAUTHORIZED,
-        "error",
-        null,
-        "No user with this token"
-      );
-    }
-
-    console.log("AUTHORIZED USER FROM MIDDLEWARE", user);
-    req.user = user;
-
-    req.userId = id;
-    return next();
-  } catch (error) {
-    if (error) console.log(error);
-  }
-};
-
-exports.adminAuth = async (req, res, next) => {
-  try {
-    // const adminId = req.headers.xappid;
-    // if (!adminId) {
-    //   return responseObject(
-    //     res,
-    //     HTTP_UNAUTHORIZED,
-    //     "error",
-    //     null,
-    //     "Invalid App Access"
-    //   );
-    // }
-    // if (adminId !== "trybe-admin") {
-    //   return responseObject(
-    //     res,
-    //     HTTP_UNAUTHORIZED,
-    //     "error",
-    //     null,
-    //     "Invalid App Access"
-    //   );
-    // }
-    return next();
-  } catch (error) {
-    return responseObject(
-      res,
-      HTTP_UNAUTHORIZED,
-      "error",
-      null,
-      error.toString()
-    );
-  }
-};
-// exports.auth = async (req, res, next) => {
+// exports.authTest = async (req, res, next) => {
 //   try {
-//     const auth = req.headers.authid;
-//     if (!auth)
+//     console.log("req#@", req.headers);
+//     let id = req.headers.authid;
+//     console.log("du#", id);
+
+//     // const id = "115";
+//     if (!id) {
 //       return responseObject(
 //         res,
 //         HTTP_UNAUTHORIZED,
-//         'error',
+//         "error",
 //         null,
-//         'Invalid or expired token'
+//         "Invalid or expired token"
 //       );
+//     }
 
-//       req.userId = auth;
-//        next();
+//     let user = await Users.findOne({
+//       _id: id,
+//     });
+//     // .populate({
+//     //   path: 'vybers',
+//     //   populate: {
+//     //     path: 'vyber',
+//     //     select: authorFewPopulate()
+//     //   }
+//     // });
 
+//     if (!user) {
+//       return responseObject(
+//         res,
+//         HTTP_UNAUTHORIZED,
+//         "error",
+//         null,
+//         "No user with this token"
+//       );
+//     }
+
+//     console.log("AUTHORIZED USER FROM MIDDLEWARE", user);
+//     req.user = user;
+
+//     req.userId = id;
+//     return next();
 //   } catch (error) {
 //     if (error) console.log(error);
 //   }
 // };
+
+// exports.adminAuth = async (req, res, next) => {
+//   try {
+//     // const adminId = req.headers.xappid;
+//     // if (!adminId) {
+//     //   return responseObject(
+//     //     res,
+//     //     HTTP_UNAUTHORIZED,
+//     //     "error",
+//     //     null,
+//     //     "Invalid App Access"
+//     //   );
+//     // }
+//     // if (adminId !== "trybe-admin") {
+//     //   return responseObject(
+//     //     res,
+//     //     HTTP_UNAUTHORIZED,
+//     //     "error",
+//     //     null,
+//     //     "Invalid App Access"
+//     //   );
+//     // }
+//     return next();
+//   } catch (error) {
+//     return responseObject(
+//       res,
+//       HTTP_UNAUTHORIZED,
+//       "error",
+//       null,
+//       error.toString()
+//     );
+//   }
+// };
+// // exports.auth = async (req, res, next) => {
+// //   try {
+// //     const auth = req.headers.authid;
+// //     if (!auth)
+// //       return responseObject(
+// //         res,
+// //         HTTP_UNAUTHORIZED,
+// //         'error',
+// //         null,
+// //         'Invalid or expired token'
+// //       );
+
+// //       req.userId = auth;
+// //        next();
+
+// //   } catch (error) {
+// //     if (error) console.log(error);
+// //   }
+// // };

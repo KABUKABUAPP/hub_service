@@ -1,9 +1,19 @@
 const crypto = require("crypto");
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
 const {cloudinary} = require('../config')
 
-dotenv.config();
+// dotenv.config();
+const config = require("../config_env");
+const bcrypt = require("bcryptjs");
+
+exports.hashPassword = (password) => {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8));
+};
+
+exports.comparePassword = (hashedPassword, password) => {
+  return bcrypt.compareSync(password, hashedPassword);
+};
 
 exports.verificationCode = () => {
   const code = Math.floor(100000 + Math.random() * 900000);
@@ -31,29 +41,29 @@ exports.decryptPassword = (password, salt) => {
 };
 
 // VERIFY JWT tokens to users
-// exports.verifyJwt = (token) => {
-//   return jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-//     if (err) {
-//       console.log(err);
-//       return false;
-//     }
+exports.verifyJwt = (token) => {
+  return jwt.verify(token, config.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.log(err);
+    }
 
-//     return decoded;
-//   });
-// };
+    return decoded;
+  });
+};
 
 // Issues JWT tokens to users
-// exports.issueJwt = (user) => {
-//   const payload = {
-//     id: user.id,
-//     email: user.email
-//   };
+exports.issueJwt = (user) => {
+  const payload = {
+    id: user._id,
+    email: user?.email?user.email: undefined,
+    phone_number: user?.phone_number?user.phone_number: undefined
+  };
 
-//   const signedToken = jwt.sign(payload, process.env.JWT_SECRET, {
-//     expiresIn: '1h'
-//   });
-//   return signedToken;
-// };
+  const signedToken = jwt.sign(payload, config.JWT_SECRET, {
+    // expiresIn: '1d'
+  });
+  return signedToken;
+};
 
 // Returns a Backend response object
 exports.responseObject = (response, code, status, data, message) => {
@@ -201,7 +211,7 @@ exports.cleanString = (string) => {
 //CLOUDINARY FILE UPLOADS
 exports.imageUploader = async (file) =>{
     const {secure_url} = await cloudinary.uploader.upload(file, {
-        folder: "ride_service_images",
+        folder: "hub_service_images",
         // compressing images
         transformation: [
             {width: 480, aspect_ratio: "1.0", crop: 'fill'},
@@ -222,9 +232,17 @@ exports.imageUploader = async (file) =>{
 exports.fileUploader = async (file) =>{
     const {secure_url} = await cloudinary.uploader.upload(file,
       {
-        folder: "ride_service_docs", 
+        folder: "hub_service_docs", 
         secure: true
       },
     )
     return secure_url
+}
+
+exports.formatPhoneNumber =  (phone_number) => {
+  if (phone_number.startsWith("0")) return `+234${phone_number.slice(1)}`;
+
+  if (phone_number.startsWith("234")) return `+${phone_number}`;
+
+  return phone_number;
 }

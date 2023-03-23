@@ -46,7 +46,11 @@ module.exports = {
     //     console.log("auoo$##", );
     //     main();
     // }
-    amqp.connect(config_env.CLOUDAMQP_URL, (err, connection) => {
+     amqp.connect(config_env.CLOUDAMQP_URL, (errx, connection) => {
+      if (errx) {
+        console.log('error', errx);
+        return;
+      }
       connection.createChannel((err, ch) => {
         if (closeOnErr(err)) return;
 
@@ -67,7 +71,7 @@ module.exports = {
         });
       });
     });
-
+    
     // function main() {
     //   amqpConn.createChannel((err, ch) => {
     //     if (closeOnErr(err)) return;

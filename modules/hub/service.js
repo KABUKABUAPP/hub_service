@@ -9,7 +9,7 @@ const {
   HTTP_NOT_FOUND,
   HTTP_BAD_REQUEST,
 } = require("../../helpers/httpCodes");
-const User = require("../../models/user");
+const User = require("../../models/hub");
 
 const _ = require("lodash");
 
