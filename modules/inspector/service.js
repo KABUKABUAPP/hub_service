@@ -212,53 +212,62 @@ exports.approveDeclineDriverApplication = async (payload) => {
     } = payload
     let message
 
-    const axiosResponse = await axios.put(
-      `${config_env.RIDE_SERVICE_BASE_URL}/driver/approve-decline-driver-application`,
-      {
-        driver_id: driver_id,
-        approval_status: String(approval_status).toLowerCase(),
-        reason: reason
-      }
-   ).catch(function (error) {
-    if (error.response) {
-      return {
-        status: error.response.data.status,
-        code: error.response.status,
-        message: error.response.data.message,
-      }
-    } else if (error.request) {
-      console.log("AXIOS ERROR REQUEST>>>>", error.request);
-    } else {
-      console.log('Error', error.message);
-    }
-    console.log(error.config);
-  });
+  if(String(approval_status).toLowerCase() === "active"){
+    message = "Driver Application Approved Successfully"
+  } else {
+    message = 'Driver Application Declned Successfully'
+  }
+  //   const axiosResponse = await axios.put(
+  //     `${config_env.RIDE_SERVICE_BASE_URL}/driver/approve-decline-driver-application`,
+  //     {
+  //       driver_id: driver_id,
+  //       approval_status: String(approval_status).toLowerCase(),
+  //       reason: reason
+  //     }
+  //  ).catch(function (error) {
+  //   if (error.response) {
+  //     return {
+  //       status: error.response.data.status,
+  //       code: error.response.status,
+  //       message: error.response.data.message,
+  //     }
+  //   } else if (error.request) {
+  //     console.log("AXIOS ERROR REQUEST>>>>", error.request);
+  //   } else {
+  //     console.log('Error', error.message);
+  //   }
+  //   console.log(error.config);
+  // });
 
   
-   let driver_details
-   if(Number(axiosResponse.status) < 400){
-    driver_details = axiosResponse.data.data
-   } else  {
-    return {
-      status:axiosResponse.status,
-      code: axiosResponse.code,
-      message: axiosResponse.message
-    }
-   }
+  //  let driver_details
+  //  if(Number(axiosResponse.status) < 400){
+  //   driver_details = axiosResponse.data.data
+  //  } else  {
+  //   return {
+  //     status:axiosResponse.status,
+  //     code: axiosResponse.code,
+  //     message: axiosResponse.message
+  //   }
+  //  }
   
 
-    // sendQueue(
-    //   messaging.RIDE_SERVICE_APPROVE_DRIVER,
-    //   Buffer.from(JSON.stringify(payload))
-    // )
+    sendQueue(
+      messaging.RIDE_SERVICE_APPROVE_DRIVER,
+      Buffer.from(JSON.stringify(payload))
+    )
+
+    sendQueue(
+      messaging.AUTH_SERVICE_UPDATE_DRIVER,
+      Buffer.from(JSON.stringify(payload))
+    )
 
     //Complete Driver Onboarding
 
     return {
       status: "status",
       code: HTTP_OK,
-      message: axiosResponse.data.message,
-      data: driver_details
+      message: message,
     }
 
   } catch (error) {
