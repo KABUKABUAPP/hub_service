@@ -12,6 +12,9 @@ const schema = mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "Inspector",
     },
+    cars_processed: {type: Number, default: 0},
+    cars_approved: {type: Number, default: 0},
+    cars_declined: {type: Number, default: 0},
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

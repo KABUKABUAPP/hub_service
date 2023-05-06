@@ -11,7 +11,10 @@ const {
   createPassword,
   login,
   fetchDriverByCode,
-  approveDeclineDriverApplication
+  approveDeclineDriverApplication,
+  syncCameraFromHub,
+  syncLocationTrackerFromHub,
+  approveDriverApplicationQuick
 } = require("./service");
 
 exports.enterPhoneOrEmailController = async (req, res) => {
@@ -119,11 +122,90 @@ exports.fetchDriverController = async (req, res) => {
 exports.approveDeclineDriverApplicationController = async (req, res) => {
   try {
     const payload = {
+      inspector: req.user,
+      hub_id: req.assigned_hub,
       driver_id: req.params.id,
       approval_status: req.body.approval_status,
       reason: req.body.reason
     }
     const {status, code, message, data} = await approveDeclineDriverApplication(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.approveDriverApplicationQuickController = async (req, res) => {
+  try {
+    const payload = {
+      inspection_code: req.params.inspection_code,
+    }
+    const {status, code, message, data} = await approveDriverApplicationQuick(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.synchronizeCameraController = async (req, res) => {
+  try {
+    const payload = {
+      inspection_code: req.params.inspection_code,
+      device_number: req.params.device_number,
+    }
+    const {status, code, message, data} = await syncCameraFromHub(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.synchronizeLocationTrackerController = async (req, res) => {
+  try {
+    const payload = {
+      inspection_code: req.params.inspection_code,
+      device_number: req.params.device_number,
+    }
+    const {status, code, message, data} = await syncLocationTrackerFromHub(payload);
     return responseObject(
       res,
       code,

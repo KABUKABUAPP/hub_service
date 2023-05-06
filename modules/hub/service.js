@@ -9,8 +9,6 @@ const {
   HTTP_NOT_FOUND,
   HTTP_BAD_REQUEST,
 } = require("../../helpers/httpCodes");
-const User = require("../../models/hub");
-
 const _ = require("lodash");
 
 const { sendQueue } = require("../../queues");
@@ -20,36 +18,41 @@ const {
   deleteRedisData,
   deleteRedisMany,
 } = require("../../helpers/cache");
+const { Hub } = require("../../models");
 //const { sendQueue } = require('../queues/index');
 
-exports.createUser = async (user) => {
+exports.updateHubInspections = async (payload) => {
   try {
-    const userData = {
-      _id: user._id,
-      full_name: user.full_name,
-      phone_number: user.phone_number,
-      email: user.email,
-      profile_image: user.profile_image,
-      type: user.type,
-      isBlocked: user.isBlocked,
-      accessTokens: user.accessTokens,
-      next_of_kin: user.next_of_kin,
-      onboarding_step: user.onboarding_step,
-      is_onboarding_complete: user.is_onboarding_complete,
-      driver: user.driver,
-      accessory_id: user.accessory_id,
-      guarantor: user.guarantor,
-      latitude_location: user.latitude_location,
-      longitude_location: user.longitude_location
-    };
-    await User.create(userData, async (err, user) => {
-      if (err) {
-        console.log(err);
-        return false;
-      }
+    const {
+      hub_id,
+      status
+    } = payload
+    const hub = await Hub.findById(hub_id)
+    if(hub){
+      if (status === "approved"){
+        await Hub.findByIdAndUpdate(hub_id, 
+          { $inc : 
+            { 
+              "cars_processed" : 1, 
+              "cars_approved" : 1, 
+            } 
+          }
 
-      return true;
-    });
+        )
+      }
+      if(status === "declined"){
+        await Hub.findByIdAndUpdate(hub_id, 
+          { $inc : 
+            { 
+              "cars_processed" : 1, 
+              "cars_declined" : 1, 
+            } 
+          }
+
+        )
+      }
+    }
+    return true;
   } catch (error) {
     console.log(error);
     return false;
