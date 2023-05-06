@@ -7,14 +7,19 @@ const {
   createPasswordController, 
   loginController,
   fetchDriverController,
-  approveDeclineDriverApplicationController
+  approveDeclineDriverApplicationController,
+  synchronizeCameraController,
+  synchronizeLocationTrackerController,
+  approveDriverApplicationQuickController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
 const { 
   loginSchema,
   fetchDriverSchema,
   modelIdSchema,
-  approveDeclineDriverSchema
+  approveDeclineDriverSchema,
+  synchDevicesSchema,
+  quickApproveSchema
  } = require("./schema");
 
 const router = Router();
@@ -47,6 +52,27 @@ router.post(
   validateRequest(modelIdSchema, "params"),
   validateRequest(approveDeclineDriverSchema, "body"),
   approveDeclineDriverApplicationController
+);
+
+router.get(
+  "/approve-driver-quick/:inspection_code",
+  validateRequest(quickApproveSchema, "params"),
+  // validateRequest(approveDeclineDriverSchema, "body"),
+  approveDriverApplicationQuickController
+);
+
+router.get(
+  "/sync-camera/:inspection_code/:device_number", 
+  // isAuthorized, 
+  validateRequest(synchDevicesSchema, "params"),
+  synchronizeCameraController
+);
+
+router.get(
+  "/sync-location-tracker/:inspection_code/:device_number", 
+  // isAuthorized, 
+  validateRequest(synchDevicesSchema, "params"),
+  synchronizeLocationTrackerController
 );
 
 module.exports = router;

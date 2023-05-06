@@ -5,6 +5,10 @@ exports.modelIdSchema = Joi.object().keys({
   id: Joi.string().required()
 })
 
+exports.quickApproveSchema = Joi.object().keys({
+  inspection_code: Joi.string().required()
+})
+
 exports.paginateSchema = Joi.object().keys({
   limit: Joi.number().optional(),
   page: Joi.number().optional(),
@@ -40,3 +44,8 @@ exports.approveDeclineDriverSchema = Joi.object().keys({
   approval_status: Joi.string().valid('active', 'declined').required(),
   reason: Joi.string().optional(),
 });
+
+exports.synchDevicesSchema = Joi.object().keys({
+  inspection_code: Joi.string().required(),
+  device_number: Joi.string().required(),
+})
