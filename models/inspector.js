@@ -13,7 +13,14 @@ const schema = mongoose.Schema(
     country: { type: String, default: 'Nigeria' },
     password: { type: String, },
     access_token: { type: String, },
-    regCompleted: {type: Boolean, default: false}
+    regCompleted: {type: Boolean, default: false},
+    assigned_hub: {
+      type: mongoose.Types.ObjectId,
+      ref: "Hub",
+    },
+    cars_processed: {type: Number, default: 0},
+    cars_approved: {type: Number, default: 0},
+    cars_declined: {type: Number, default: 0},
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

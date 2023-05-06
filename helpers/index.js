@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
 const {cloudinary} = require('../config')
+const axios = require('axios')
 
 // dotenv.config();
 const config = require("../config_env");
@@ -245,4 +246,54 @@ exports.formatPhoneNumber =  (phone_number) => {
   if (phone_number.startsWith("234")) return `+${phone_number}`;
 
   return phone_number;
+}
+
+
+exports.axiosRequestFunction = async({method,url,data,params,headers}) =>{
+  try {
+    const config = {
+      method: method,
+      url: url,
+      data: {...(data && data)},
+      params: {...(params &&params)},
+      headers: {...(headers &&headers)},
+
+    }
+    const res = await axios(config).catch(function (error) {
+      if (error.response) {
+        return {
+          status: error.response.data.status,
+          code: error.response.status,
+          message: error.response.data.message,
+        }
+      } else if (error.request) {
+        console.log("AXIOS ERROR REQUEST>>>>", error.request);
+      } else {
+        console.log('"AXIOS ERROR MESSAGE>>>>",', error.message);
+      }
+      console.log("AXIOS ERROR CONFIG>>>>",error.config);
+    });
+    if(Number(res?.status) < 400){
+      const resData = res.data
+      return {
+        status: resData?.status,
+        code: res.status,
+        message: resData?.message,
+        data: resData?.data
+      }
+      }else {
+        return {
+          status: res?.status,
+          code: res?.code,
+          message: res.message
+        }
+      }
+  } catch (error) {
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error.toString()
+    }
+  }
+  
 }
