@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
-const { responseObject, authorFewPopulate, verifyJwt } = require("../helpers");
+const { responseObject, authorFewPopulate, verifyJwt, axiosRequestFunction } = require("../helpers");
 const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED, HTTP_SERVER_ERROR } = require("../helpers/httpCodes");
 const {Inspector} = require("../models");
+const config_env = require('../config_env');
 
 exports.isAuthorized = async (req, _res, next) => {
   try {
@@ -172,3 +173,56 @@ exports.isAuthorized = async (req, _res, next) => {
 // //     if (error) console.log(error);
 // //   }
 // // };
+
+exports.authorizeAdmin = (role) => {
+  return async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      try {
+        //   validate
+        const getAdmin = await axiosRequestFunction({
+          url: config_env.RIDE_SERVICE_BASE_URL+`/admin/auth/validate/${token}`,
+          method: "get"
+        })
+        if(getAdmin.status === "error"){
+          return getAdmin
+        }
+        const admin = getAdmin.data
+        const adminEmail = admin.email
+        const adminId = admin._id
+        if (
+          String(admin.role) === String(role) ||
+          String(role) === "All"
+        ) {
+          req.token = token;
+          req.userId = adminId
+          req.admin = adminEmail
+          next();
+        } else {
+          const data = {
+            code: 401,
+            status: "error",
+            message: "Unauthorized",
+          };
+          return res.status(401).json(data);
+        }
+      } catch (error) {
+        const data = {
+          code: 401,
+          status: "error",
+          message: error.message,
+          details: error.stack,
+        };
+        return res.status(401).json(data);
+      }
+    } else {
+      const data = {
+        code: 401,
+        status: "error",
+        message: "Unauthorized",
+      };
+      return res.status(401).json(data);
+    }
+  };
+};
