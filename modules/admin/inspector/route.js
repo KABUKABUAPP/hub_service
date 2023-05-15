@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const {multerUpload} = require('../../../config')
 // const { auth } = require("../../isAuthenticated");
-const { authTest } = require("../../../middlewares/auth");
+const { authTest, authorizeAdmin } = require("../../../middlewares/auth");
 const { 
   addNewInspectorController,
   fetchInspectorByIdController,
@@ -18,7 +18,7 @@ const router = Router();
 
 router.post(
   "/add-new",
-  //  authTest, 
+  authorizeAdmin("All"), 
   validateRequest(addNewInspectorSchema, 'body'),
   addNewInspectorController
 );
@@ -26,14 +26,14 @@ router.post(
 
 router.get(
   "/get-one/:id",
-  //  authTest, 
+  authorizeAdmin("All"), 
   validateRequest(modelIdSchema, 'params'),
   fetchInspectorByIdController
 );
 
 router.get(
   "/all",
-  //  authTest, 
+  authorizeAdmin("All"), 
   validateRequest(paginateSchema, 'query'),
   getAllInspectorsController
 );
