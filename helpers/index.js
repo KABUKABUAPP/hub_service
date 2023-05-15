@@ -273,19 +273,22 @@ exports.axiosRequestFunction = async({method,url,data,params,headers}) =>{
       }
       console.log("AXIOS ERROR CONFIG>>>>",error.config);
     });
-    if(Number(res?.status) < 400){
+    if(Number(res.status) < 400){
       const resData = res.data
+        console.log("THIS IS THE ELSE DATA", resData);
+
       return {
         status: resData?.status,
-        code: res.status,
+        code: resData?.code,
         message: resData?.message,
         data: resData?.data
       }
       }else {
+        console.log("THIS IS THE ELSE OR ERROR", res);
         return {
           status: res?.status,
           code: res?.code,
-          message: res.message
+          message: res?.message
         }
       }
   } catch (error) {

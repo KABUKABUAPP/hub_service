@@ -158,7 +158,7 @@ exports.fetchDriverByCode = async (payload) => {
     } = payload
 
    const axiosResponse = await axios.get(
-      `${config_env.AUTH_SERVICE_BASE_URL}/driver/inspection_code`,
+      `${config_env.RIDE_SERVICE_BASE_URL}/driver/inspection_code`,
       {params: {inspection_code: code}}
    ).catch(function (error) {
     if (error.response) {
@@ -221,7 +221,7 @@ exports.approveDeclineDriverApplication = async (payload) => {
     message = "Driver Application Approved Successfully"
     const axiosReq = await axiosRequestFunction({
       method: "get",
-      url: `${config_env.AUTH_SERVICE_BASE_URL}/driver/verify-driver-approval/${driver_id}`
+      url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/verify-driver-approval/${driver_id}`
     })
     if(axiosReq.status !== "success"){
       return {
@@ -310,7 +310,7 @@ exports.approveDeclineDriverApplication = async (payload) => {
     //Complete Driver Onboarding
     const axiosToAuth = await axiosRequestFunction({
       method: "put",
-      url: `${config_env.AUTH_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
+      url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
       data: {
         approval_status: approval_status,
         reason: reason
@@ -353,7 +353,7 @@ exports.syncLocationTrackerFromHub = async (payload) => {
 
     const axiosReq = await axiosRequestFunction({
       method: "put",
-      url: `${config_env.AUTH_SERVICE_BASE_URL}/car/sync-location-tracker/from-hub`,
+      url: `${config_env.RIDE_SERVICE_BASE_URL}/car/sync-location-tracker/from-hub`,
       data: {inspection_code, device_number}
     })
   if(axiosReq.status !== "success"){
@@ -391,7 +391,7 @@ exports.syncCameraFromHub = async (payload) => {
 
     const axiosReq = await axiosRequestFunction({
       method: "put",
-      url: `${config_env.AUTH_SERVICE_BASE_URL}/car/sync-camera/from-hub`,
+      url: `${config_env.RIDE_SERVICE_BASE_URL}/car/sync-camera/from-hub`,
       data: {inspection_code, device_number}
     })
     if(axiosReq.status !== "success"){
