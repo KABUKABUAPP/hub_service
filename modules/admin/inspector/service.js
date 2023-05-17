@@ -64,6 +64,8 @@ exports.addNewInspectorService = async (payload) => {
       email
     });
 
+    
+
     return {
       status: "success",
       code: HTTP_CREATED,
