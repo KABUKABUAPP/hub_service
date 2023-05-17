@@ -189,8 +189,9 @@ exports.authorizeAdmin = (role) => {
           return getAdmin
         }
         const admin = getAdmin.data
-        const adminEmail = admin.email
-        const adminId = admin._id
+        console.log("THIS IS THE ADMIN DATA>>>>>>>>>>", admin)
+        const adminEmail = admin?.email
+        const adminId = admin?._id
         if (
           String(admin.role) === String(role) ||
           String(role) === "All"
@@ -211,8 +212,8 @@ exports.authorizeAdmin = (role) => {
         const data = {
           code: 401,
           status: "error",
-          message: error.message,
-          details: error.stack,
+          message: error?.message,
+          data: error.stack,
         };
         return res.status(401).json(data);
       }
