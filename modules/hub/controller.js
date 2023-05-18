@@ -6,7 +6,11 @@ const {
   HTTP_NOT_FOUND,
   HTTP_BAD_REQUEST,
 } = require("../../helpers/httpCodes");
-const { fetchUserService, fetchUserByIdService } = require("./service");
+const { 
+  fetchUserService, 
+  fetchUserByIdService,
+  fetchHubByLocationService
+ } = require("./service");
 
 exports.fetchUser = async (req, res) => {
   try {
@@ -79,5 +83,39 @@ exports.fetchUserById = async (req, res) => {
       null,
       error.toString()
     );
+  }
+};
+
+
+
+exports.fetchHubsByLocationController = async (req, res, next) => {
+  try {
+    const payload = {
+      state: req.query.state,
+      city: req.query.city
+    }
+
+    const {status, code, message, data} = await fetchHubByLocationService(payload);
+
+    return next (
+      responseObject(
+        res,
+        code,
+        status,
+        data,
+        message
+      )
+    );
+  } catch (error) {
+    console.log(error);
+    return next(
+      responseObject(
+        res,
+        HTTP_SERVER_ERROR,
+        "error",
+        null,
+        error.toString()
+      )
+    )
   }
 };

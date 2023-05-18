@@ -8,7 +8,7 @@ const adminInspectorRoutes = require('../modules/admin/inspector/route')
 module.exports = (app) => {
 
   app.use("/inspector", inspectorRoute);
-  // app.use("/user", userRoute);
+  app.use("/hub", hubRoute);
 
 
 
