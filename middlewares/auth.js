@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { responseObject, authorFewPopulate, verifyJwt, axiosRequestFunction } = require("../helpers");
+const { responseObject, authorFewPopulate, verifyJwt, axiosRequestFunction, formatPhoneNumber } = require("../helpers");
 const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED, HTTP_SERVER_ERROR } = require("../helpers/httpCodes");
 const {Inspector} = require("../models");
 const config_env = require('../config_env');
@@ -227,3 +227,42 @@ exports.authorizeAdmin = (role) => {
     }
   };
 };
+
+exports.authorizeInspectorLogin = async (req, _res, next) => {
+  try {
+    const emailOrNumber = String(req.body.phone_number).includes("@")? req.body.phone_number:formatPhoneNumber(req.body.phone_number)
+    const existingInspector = String(emailOrNumber).includes('@')?
+    await Inspector.findOne({
+      email: {$regex: emailOrNumber, $options: "i"}
+    }): await Inspector.findOne({
+      phone_number: emailOrNumber
+    })
+
+     if (!existingInspector) {
+      const respo = {
+        status: "error",
+        code: HTTP_NOT_FOUND,
+        message: "Account Not Found",
+      }
+      return next( 
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      );
+    } else {
+      req.user = existingInspector
+      req.userId = existingInspector._id
+      return next()
+    }
+
+  } catch (error) {
+    console.log(error);
+    const respo = {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message,
+      data: error
+    }
+    return next(
+      responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+    ) 
+  }
+}

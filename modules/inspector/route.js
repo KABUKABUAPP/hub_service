@@ -1,7 +1,7 @@
 const { Router } = require("express");
 
 // const { auth } = require("../../isAuthenticated");
-const { authTest, isAuthorized } = require("../../middlewares/auth");
+const { authTest, isAuthorized, authorizeInspectorLogin } = require("../../middlewares/auth");
 const { 
   enterPhoneOrEmailController, 
   createPasswordController, 
@@ -19,26 +19,24 @@ const {
   modelIdSchema,
   approveDeclineDriverSchema,
   synchDevicesSchema,
-  quickApproveSchema
+  quickApproveSchema,
+  createNewPasswordSchema
  } = require("./schema");
 
 const router = Router();
 
 router.post(
-  "/enter-phone-or-email", 
-  enterPhoneOrEmailController
+  "/login", 
+  validateRequest(loginSchema, "body"),
+  authorizeInspectorLogin,
+  loginController
 );
 
 router.post(
   "/create-password", 
+  validateRequest(createNewPasswordSchema, "body"),
   isAuthorized,
   createPasswordController
-);
-
-router.post(
-  "/login",
-  validateRequest(loginSchema, "body"),
-  loginController
 );
 
 router.get(

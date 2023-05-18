@@ -33,39 +33,43 @@ const { messaging } = require("../../helpers/constants");
 const { updateHubInspections } = require("../hub/service");
 //const { sendQueue } = require('../queues/index');
 
-exports.enterPhoneOrEmail = async (payload) => {
+exports.login = async (payload) => {
   try {
     const  {
-      email_or_number,
+      inspector,
+      password
     } = payload
+   let message
+    const isPasswordCorrect = await comparePassword(inspector.password, password)
 
-    const inspector = await Inspector.findOne({
-      $or: [
-        {phone_number: email_or_number},
-        {email: email_or_number}
-      ]
-    });
-    const message = String(email_or_number).includes('@')?"No Account Found with this email": "No Account Found with this Phone Number"
-   
-    if(!inspector){
+    if (!isPasswordCorrect){
       return {
         status: "error",
-        code: HTTP_NOT_FOUND,
-        message: message
-      }
+        code: HTTP_BAD_REQUEST,
+        message: `Wrong Password Inputed`,
+      };
+    }
+    if (inspector.regCompleted === false){
+      message= 'Proceed to create password'
+    } else {
+      message= 'Login Successful'
     }
     const token = issueJwt(inspector)
     return {
       status: "success",
       code: HTTP_OK,
-      message: 'Proceed to create password',
+      message: message ,
       data: {inspector, token}
-      // data: inspector
     }
 
   } catch (error) {
     console.log(error);
-    return false;
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error?.message,
+      data: error
+    };
   }
 };
 
@@ -100,54 +104,13 @@ exports.createPassword = async (payload) => {
     }
 
   } catch (error) {
-    console.log(error);
-    return false;
-  }
-};
-
-
-exports.login = async (payload) => {
-  try {
-    const  {
-      phone_number,
-      password,
-    } = payload
-
-   const existingInspector = await Inspector.findOne({phone_number: phone_number})
-  
-   if(!existingInspector){
+     console.log(error);
     return {
       status: "error",
-      code: HTTP_NOT_FOUND,
-      message: "Phone Number not registered on this platform"
-    }
-   }
-
-   const passwordMatch = await comparePassword(existingInspector.password, password) 
-   if(!passwordMatch){
-    return {
-      status: "error",
-      code: HTTP_BAD_REQUEST,
-      message: "Incorrect Password"
-    }
-   }
-
-   const token = issueJwt(existingInspector)
-
-   await Inspector.findByIdAndUpdate(existingInspector._id, {
-    access_token: token
-   })
-
-    return {
-      status: "success",
-      code: HTTP_OK,
-      message: 'Log In Successful',
-      data: {inspector: existingInspector, access_token: token }
-    }
-
-  } catch (error) {
-    console.log(error);
-    return false;
+      code: HTTP_SERVER_ERROR,
+      message: error?.message,
+      data: error
+    };
   }
 };
 
