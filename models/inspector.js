@@ -7,6 +7,7 @@ const schema = mongoose.Schema(
     profile_image: { type: String, sparse: true },
     phone_number: { type: String },
     email: { type: String },
+    password: { type: String },
     house_address: { type: String, sparse: true, required: true },
     city: { type: String, sparse: true },
     state: { type: String, sparse: true },
