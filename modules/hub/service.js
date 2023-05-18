@@ -102,3 +102,40 @@ exports.updateUser = async (payload) => {
     };
   }
 };
+
+
+exports.fetchHubByLocationService = async (payload) => {
+  try {
+    const {
+      city, state
+    } = payload
+    let foundHub
+    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }})
+    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }})
+    foundHub = cityHub?cityHub:stateHub
+    .populate("inspector");
+    if(!foundHub){
+      return {
+        status: "error",
+        code: HTTP_NOT_FOUND,
+        message: 'Hub Not Found',
+      }
+    }
+
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: "hub fetched successfully",
+      data: foundHub,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+};

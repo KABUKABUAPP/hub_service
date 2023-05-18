@@ -38,4 +38,11 @@ router.get(
   getAllHubsController
 );
 
+router.get(
+  "/all",
+  authorizeAdmin("All"),
+  validateRequest(paginateSchema, 'query'),
+  getAllHubsController
+);
+
 module.exports = router;
