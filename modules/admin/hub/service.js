@@ -91,7 +91,18 @@ exports.addNewHubService = async (payload) => {
 exports.fetchHubByIdService = async (id) => {
   try {
     const hub = await Hub.findById(id)
-    .populate("inspector");
+    .populate({
+      path: "inspector",
+      select:{
+        first_name:1, 
+        last_name:1, 
+        profile_image:1, 
+        phone_number:1, 
+        email:1,
+        city:1,
+        state:1
+      }
+    });
     if(!hub){
       return {
         status: "error",
@@ -136,6 +147,43 @@ exports.getAllHubsService = async (payload) => {
       code: HTTP_OK,
       message: "hubs fetched successfully",
       data: hubs,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+};
+
+
+exports.fetchHubByLocationService = async (payload) => {
+  try {
+    const {
+      city, state
+    } = payload
+    let foundHub
+    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }})
+    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }})
+    foundHub = cityHub?cityHub:stateHub
+    .populate("inspector");
+    if(!foundHub){
+      return {
+        status: "error",
+        code: HTTP_NOT_FOUND,
+        message: 'Hub Not Found',
+      }
+    }
+
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: "hub fetched successfully",
+      data: foundHub,
     };
   } catch (error) {
     console.log(error);
