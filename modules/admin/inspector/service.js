@@ -2,6 +2,10 @@ const {
   responseObject,
   authorFewPopulate,
   getVibersIds,
+  getRandomRef,
+  generateRandomString,
+  hashPassword,
+  formatPhoneNumber,
 } = require("../../../helpers");
 const {
   HTTP_OK,
@@ -26,7 +30,8 @@ const {
 } = require("../../../helpers/cache");
 const {
   getPaginatedRecords
-} = require('../../../helpers/paginate')
+} = require('../../../helpers/paginate');
+const { messaging } = require("../../../helpers/constants");
 //const { sendQueue } = require('../queues/index');
 
 exports.addNewInspectorService = async (payload) => {
@@ -54,17 +59,29 @@ exports.addNewInspectorService = async (payload) => {
       }
     }
 
+    const randomPassword = generateRandomString(8)
+    const hash = hashPassword(randomPassword)
     const newInspector = await Inspector.create({
       first_name,
       last_name,
-      phone_number,
+      phone_number: formatPhoneNumber(phone_number),
       house_address,
       city,
       state,
-      email
+      email,
+      password: hash
     });
-
-    
+    const mailData = {
+      first_name,
+      last_name,
+      phone_number: formatPhoneNumber(phone_number),
+      email,
+      password: randomPassword
+    }
+    sendQueue(
+      messaging.NOTIFICATION_MAIL_TO_NEW_INSPECTOR,
+      Buffer.from(JSON.stringify(mailData))
+    )
 
     return {
       status: "success",

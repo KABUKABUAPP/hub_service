@@ -1,5 +1,6 @@
 const Joi = require("joi").extend(require("@joi/date"));
 Joi.objectId = require("joi-objectid")(Joi);
+const pattern= "/^[0-9+]{7}-[0-9+]{1}$/"
 
 exports.modelIdSchema = Joi.object().keys({
   id: Joi.string().required()
@@ -34,6 +35,10 @@ exports.addNewInspectorSchema = Joi.object().keys({
 exports.loginSchema = Joi.object().keys({
   phone_number: Joi.string().required(),
   password: Joi.string().required(),
+});
+exports.createNewPasswordSchema = Joi.object().keys({
+  new_password: Joi.string().alphanum().min(8).max(30).required(),
+  // new_password: Joi.string().regex(new RegExp('^[a-zA-Z0-9]{8,32}$')).required()
 });
 
 exports.fetchDriverSchema = Joi.object().keys({
