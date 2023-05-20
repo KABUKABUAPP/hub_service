@@ -13,6 +13,7 @@ exports.quickApproveSchema = Joi.object().keys({
 exports.paginateSchema = Joi.object().keys({
   limit: Joi.number().optional(),
   page: Joi.number().optional(),
+  isVerified: Joi.boolean().default(false).optional(),
 
 })
 

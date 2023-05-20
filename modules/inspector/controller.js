@@ -14,7 +14,8 @@ const {
   approveDeclineDriverApplication,
   syncCameraFromHub,
   syncLocationTrackerFromHub,
-  approveDriverApplicationQuick
+  approveDriverApplicationQuick,
+  fetchAssignedApplications
 } = require("./service");
 
 exports.loginController = async (req, res) => {
@@ -127,6 +128,7 @@ exports.approveDeclineDriverApplicationController = async (req, res) => {
 exports.approveDriverApplicationQuickController = async (req, res) => {
   try {
     const payload = {
+      inspector: req.user,
       inspection_code: req.params.inspection_code,
     }
     const {status, code, message, data} = await approveDriverApplicationQuick(payload);
@@ -182,6 +184,34 @@ exports.synchronizeLocationTrackerController = async (req, res) => {
       device_number: req.params.device_number,
     }
     const {status, code, message, data} = await syncLocationTrackerFromHub(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.fetchAssignedApplicationsController = async (req, res) => {
+  try {
+    const payload = {
+      user: req.user,
+      limit: req.query.limit,
+      page: req.query.page,
+      isVerified: req.query.isVerified
+    }
+    const {status, code, message, data} = await fetchAssignedApplications(payload);
     return responseObject(
       res,
       code,
