@@ -17,9 +17,10 @@ exports.comparePassword = (hashedPassword, password) => {
 };
 
 exports.verificationCode = () => {
-  const code = Math.floor(100000 + Math.random() * 900000);
+  const code = Math.floor(1000 + Math.random() * 9000);
   return code;
 };
+
 
 exports.encryptPassword = (password, salt) => {
   if (!password) return "";
@@ -61,6 +62,14 @@ exports.issueJwt = (user) => {
   };
 
   const signedToken = jwt.sign(payload, config.JWT_SECRET, {
+    // expiresIn: '1d'
+  });
+  return signedToken;
+};
+//Issue JWT for OTP
+exports.jwtForOtp = (data) => {
+
+  const signedToken = jwt.sign(data, config.JWT_SECRET, {
     // expiresIn: '1d'
   });
   return signedToken;

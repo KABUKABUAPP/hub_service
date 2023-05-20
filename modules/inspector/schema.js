@@ -38,7 +38,7 @@ exports.loginSchema = Joi.object().keys({
 });
 exports.createNewPasswordSchema = Joi.object().keys({
   new_password: Joi.string().alphanum().min(8).max(30).required(),
-  // new_password: Joi.string().regex(new RegExp('^[a-zA-Z0-9]{8,32}$')).required()
+  otp: Joi.number().required(),
 });
 
 exports.fetchDriverSchema = Joi.object().keys({

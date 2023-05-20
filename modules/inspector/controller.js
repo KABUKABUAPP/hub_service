@@ -48,6 +48,7 @@ exports.createPasswordController = async (req, res) => {
     const payload = {
       inspector: req.user,
       password: req.body.new_password,
+      otp: req.body.otp
     }
     const {status, code, message, data} = await createPassword(payload);
     return responseObject(
