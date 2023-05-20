@@ -213,82 +213,38 @@ exports.approveDeclineDriverApplication = async (payload) => {
         message: axiosReq.message
       }
     }
-    // await Inspector.findByIdAndUpdate(inspector._id, 
-    //   { $inc : 
-    //     { 
-    //       "cars_processed" : 1, 
-    //       "cars_approved" : 1, 
-    //     } 
-    //   }
-    // )
-    // hubUpdate = {
-    //   hub_id: inspector.assigned_hub,
-    //   status: "approved"
-    // }
-    // //update hub center
-    // await updateHubInspections(hubUpdate)
+    await Inspector.findByIdAndUpdate(inspector._id, 
+      { $inc : 
+        { 
+          "cars_processed" : 1, 
+          "cars_approved" : 1, 
+        } 
+      }
+    )
+    hubUpdate = {
+      hub_id: inspector.assigned_hub,
+      status: "approved"
+    }
+    //update hub center
+    await updateHubInspections(hubUpdate)
 
 
   } else {
     message = 'Driver Application Declned Successfully'
-    // await Inspector.findByIdAndUpdate(inspector._id, 
-    //   { $inc : 
-    //     { 
-    //       "cars_processed" : 1, 
-    //       "cars_declined" : 1, 
-    //     } 
-    //   }
-    // )
-    // hubUpdate = {
-    //   hub_id: inspector.assigned_hub,
-    //   status: "declined"
-    // }
-    // await updateHubInspections(hubUpdate)
+    await Inspector.findByIdAndUpdate(inspector._id, 
+      { $inc : 
+        { 
+          "cars_processed" : 1, 
+          "cars_declined" : 1, 
+        } 
+      }
+    )
+    hubUpdate = {
+      hub_id: inspector.assigned_hub,
+      status: "declined"
+    }
+    await updateHubInspections(hubUpdate)
   }
-  //   const axiosResponse = await axios.put(
-  //     `${config_env.RIDE_SERVICE_BASE_URL}/driver/approve-decline-driver-application`,
-  //     {
-  //       driver_id: driver_id,
-  //       approval_status: String(approval_status).toLowerCase(),
-  //       reason: reason
-  //     }
-  //  ).catch(function (error) {
-  //   if (error.response) {
-  //     return {
-  //       status: error.response.data.status,
-  //       code: error.response.status,
-  //       message: error.response.data.message,
-  //     }
-  //   } else if (error.request) {
-  //     console.log("AXIOS ERROR REQUEST>>>>", error.request);
-  //   } else {
-  //     console.log('Error', error.message);
-  //   }
-  //   console.log(error.config);
-  // });
-
-  
-  //  let driver_details
-  //  if(Number(axiosResponse.status) < 400){
-  //   driver_details = axiosResponse.data.data
-  //  } else  {
-  //   return {
-  //     status:axiosResponse.status,
-  //     code: axiosResponse.code,
-  //     message: axiosResponse.message
-  //   }
-  //  }
-  
-
-    // sendQueue(
-    //   messaging.RIDE_SERVICE_APPROVE_DRIVER,
-    //   Buffer.from(JSON.stringify(payload))
-    // )
-
-    // sendQueue(
-    //   messaging.AUTH_SERVICE_UPDATE_DRIVER,
-    //   Buffer.from(JSON.stringify(payload))
-    // )
 
     //Complete Driver Onboarding
     const axiosToAuth = await axiosRequestFunction({
@@ -406,10 +362,12 @@ exports.syncCameraFromHub = async (payload) => {
 exports.approveDriverApplicationQuick = async (payload) => {
   try {
     const  {
+      inspector,
       inspection_code,
     } = payload
     const fetch_id = await this.fetchDriverByCode({code: inspection_code})
     const approve = await this.approveDeclineDriverApplication({
+      inspector,
       driver_id: fetch_id?.data?.driver._id,
       approval_status: "active"
     })
@@ -441,3 +399,29 @@ exports.approveDriverApplicationQuick = async (payload) => {
     };
   }
 };
+
+exports.fetchAssignedApplications = async(payload) => {
+  try {
+    const {
+      user,
+      limit,
+      page,
+      isVerified
+    } = payload
+    const pendingApplications = await axiosRequestFunction({
+      url: config_env.RIDE_SERVICE_BASE_URL + `/driver/fetch-assigned-applications/${user?.assigned_hub}`,
+      method: "get",
+      params: {limit, page, isVerified:isVerified},
+      headers: {hubid: user._id}
+    })
+
+    return pendingApplications
+  } catch (error) {
+    console.log(error);
+    return {
+      status:"error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message
+    };
+  }
+}
