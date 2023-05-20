@@ -6,7 +6,9 @@ const {
   encryptPassword,
   hashPassword,
   comparePassword,
-  axiosRequestFunction
+  axiosRequestFunction,
+  verificationCode,
+  jwtForOtp
 } = require("../../helpers");
 const {
   HTTP_OK,
@@ -16,7 +18,8 @@ const {
 } = require("../../helpers/httpCodes");
 const {
   Inspector,
-  Hub
+  Hub,
+  OneTimePassword
 } = require('../../models')
 const _ = require("lodash");
 const axios = require('axios')
@@ -31,6 +34,7 @@ const {
 const config_env = require("../../config_env");
 const { messaging } = require("../../helpers/constants");
 const { updateHubInspections } = require("../hub/service");
+const { genOtp,  validateOTP } = require("../otp/service");
 //const { sendQueue } = require('../queues/index');
 
 exports.login = async (payload) => {
@@ -39,7 +43,7 @@ exports.login = async (payload) => {
       inspector,
       password
     } = payload
-   let message
+   let message, otp
     const isPasswordCorrect = await comparePassword(inspector.password, password)
 
     if (!isPasswordCorrect){
@@ -50,7 +54,13 @@ exports.login = async (payload) => {
       };
     }
     if (inspector.regCompleted === false){
-      message= 'Proceed to create password'
+      message= 'Proceed to create password with OTP sent to your phone'
+      //Send OTP TO PHone NUmber
+      const sendOTP = await genOtp({
+        user_id: inspector._id,
+        phone_number: inspector.phone_number
+      })
+      otp = sendOTP.data
     } else {
       message= 'Login Successful'
     }
@@ -59,7 +69,7 @@ exports.login = async (payload) => {
       status: "success",
       code: HTTP_OK,
       message: message ,
-      data: {inspector, token}
+      data: {inspector, token, otp}
     }
 
   } catch (error) {
@@ -78,7 +88,16 @@ exports.createPassword = async (payload) => {
     const  {
       inspector,
       password,
+      otp
     } = payload
+
+    const verifyOTP = await validateOTP({
+      user_id: inspector._id,
+      otp:otp
+    })
+     if(verifyOTP.status === "error"){
+      return verifyOTP
+    }
 
     if(Boolean(inspector.regCompleted) === true){
       return {
@@ -86,10 +105,11 @@ exports.createPassword = async (payload) => {
         code: HTTP_BAD_REQUEST,
         message: "Password Already Created, use forgot password link if you cannot remember your password"
       }
-
     }
-
-    const hashed = await hashPassword(password)
+    //VAlidate OTP
+    
+   
+   const hashed = await hashPassword(password)
    await Inspector.findByIdAndUpdate(inspector._id, {
     password: hashed,
     regCompleted: true
