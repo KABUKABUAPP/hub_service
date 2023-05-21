@@ -26,6 +26,7 @@ exports.isAuthorized = async (req, _res, next) => {
 
 
    const {id} = verifyJwt(token);
+  //  console.log("DESTRUCTURE token", tokenSplit);
     if (!id) {
       const respo = 
         {
@@ -54,6 +55,7 @@ exports.isAuthorized = async (req, _res, next) => {
         responseObject(_res, respo.code, respo.status, respo.data, respo.message)
       )      
     } else {
+      console.log("INSPECTOR RE OOOOhhh", existingInspector)
       req.user = existingInspector
       req.token = token,
       req.userId = existingInspector._id

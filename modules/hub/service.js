@@ -113,7 +113,6 @@ exports.fetchHubByLocationService = async (payload) => {
     const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }})
     const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }})
     foundHub = cityHub?cityHub:stateHub
-    .populate("inspector");
     if(!foundHub){
       return {
         status: "error",
@@ -122,6 +121,7 @@ exports.fetchHubByLocationService = async (payload) => {
       }
     }
 
+    console.log("FETCHED HUB>>>>>>>", foundHub)
 
     return {
       status: "success",

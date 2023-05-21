@@ -213,6 +213,7 @@ exports.approveDeclineDriverApplication = async (payload) => {
         message: axiosReq.message
       }
     }
+    console.log("INSPECTOR??????", inspector);
     await Inspector.findByIdAndUpdate(inspector._id, 
       { $inc : 
         { 
