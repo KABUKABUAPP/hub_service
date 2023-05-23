@@ -250,11 +250,10 @@ exports.fileUploader = async (file) =>{
 }
 
 exports.formatPhoneNumber =  (phone_number) => {
-  if (phone_number.startsWith("0")) return `+234${phone_number.slice(1)}`;
-
-  if (phone_number.startsWith("234")) return `+${phone_number}`;
-
-  return phone_number;
+  const stringed = String(phone_number)
+     let formated
+    formated = '+234'+ stringed.slice(-10)
+    return formated
 }
 
 

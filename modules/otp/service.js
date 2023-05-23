@@ -60,7 +60,7 @@ exports.genOtp = async (payload) => {
       sendQueue(
         messaging.USER_OTP_SMS,
         Buffer.from(
-          JSON.stringify({ phone_number: phone_number, otp: otpPayload.otp })
+          JSON.stringify({ phone_number: phone_number, otp: `${otpPayload?.otp}` })
         )
       )
       message= 'OTP sent successfully to' + phone_number
