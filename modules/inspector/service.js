@@ -65,11 +65,17 @@ exports.login = async (payload) => {
       message= 'Login Successful'
     }
     const token = issueJwt(inspector)
+   const loggedInInspector = await Inspector.findByIdAndUpdate(inspector._id, 
+      {access_token: token}, {new: true})
     return {
       status: "success",
       code: HTTP_OK,
       message: message ,
-      data: {inspector, token, otp}
+      data: {
+        inspector: loggedInInspector, 
+        token, 
+        otp
+      }
     }
 
   } catch (error) {

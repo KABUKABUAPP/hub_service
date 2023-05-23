@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { responseObject, authorFewPopulate, verifyJwt, axiosRequestFunction, formatPhoneNumber } = require("../helpers");
-const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED, HTTP_SERVER_ERROR } = require("../helpers/httpCodes");
+const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED, HTTP_SERVER_ERROR, HTTP_NOT_FOUND } = require("../helpers/httpCodes");
 const {Inspector} = require("../models");
 const config_env = require('../config_env');
 
