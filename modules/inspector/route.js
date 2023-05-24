@@ -11,7 +11,11 @@ const {
   synchronizeCameraController,
   synchronizeLocationTrackerController,
   approveDriverApplicationQuickController,
-  fetchAssignedApplicationsController
+  fetchAssignedApplicationsController,
+  viewInspectorProfileController,
+  updatePasswordController,
+  forgotPasswordController,
+  resetPasswordController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
 const { 
@@ -22,7 +26,10 @@ const {
   synchDevicesSchema,
   quickApproveSchema,
   createNewPasswordSchema,
-  paginateSchema
+  paginateSchema,
+  updatePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema
  } = require("./schema");
 
 const router = Router();
@@ -39,6 +46,32 @@ router.post(
   validateRequest(createNewPasswordSchema, "body"),
   isAuthorized,
   createPasswordController
+);
+
+router.get(
+  "/view-profile",
+  isAuthorized,
+  viewInspectorProfileController
+);
+
+router.put(
+  "/update-password", 
+  validateRequest(updatePasswordSchema, "body"),
+  isAuthorized,
+  updatePasswordController
+);
+
+router.post(
+  "/forgot-password", 
+  validateRequest(forgotPasswordSchema, "body"),
+  forgotPasswordController
+);
+
+router.put(
+  "/reset-password", 
+  isAuthorized,
+  validateRequest(resetPasswordSchema, "body"),
+  resetPasswordController
 );
 
 router.get(

@@ -8,7 +8,8 @@ const {
   comparePassword,
   axiosRequestFunction,
   verificationCode,
-  jwtForOtp
+  jwtForOtp,
+  formatPhoneNumber
 } = require("../../helpers");
 const {
   HTTP_OK,
@@ -131,6 +132,164 @@ exports.createPassword = async (payload) => {
 
   } catch (error) {
      console.log(error);
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error?.message,
+      data: error
+    };
+  }
+};
+
+exports.viewProfile = async (payload) => {
+  try {
+    const  {
+      user
+    } = payload
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: 'Inspector Profile Fetched Successfully',
+      data: user
+    }
+
+  } catch (error) {
+     console.log(error);
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error?.message,
+      data: error
+    };
+  }
+};
+
+exports.updatePassword = async (payload) => {
+  try {
+    const  {
+      inspector,
+      password,
+      newPassword
+    } = payload
+    
+    const isPasswordCorrect = await comparePassword(inspector.password, password)
+
+    if(password === newPassword){
+       return {
+        status: "error",
+        code: HTTP_BAD_REQUEST,
+        message: `Current Password And New Password The Same`,
+      };
+    }
+
+    if (!isPasswordCorrect){
+      return {
+        status: "error",
+        code: HTTP_BAD_REQUEST,
+        message: `Current Password Incorrect`,
+      };
+    }
+
+    const hashed = await hashPassword(newPassword)
+   const updated = await Inspector.findByIdAndUpdate(inspector._id, {
+      password: hashed,
+      regCompleted: true
+    }, {new:true})
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: `Password Updated Successfully`
+    }
+
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error?.message,
+      data: error
+    };
+  }
+};
+
+exports.forgotPassword = async (payload) => {
+  try {
+    const  {
+      phone_number,
+    } = payload
+    
+    const formatted = formatPhoneNumber(phone_number)
+    const exisingInspector = await Inspector.findOne({phone_number: formatted})
+    
+    if(!exisingInspector){
+      return {
+        status: "error",
+        code: HTTP_BAD_REQUEST,
+        message: `No Account Registered With This Phone Number`,
+      };
+    }
+
+     const sendOTP = await genOtp({
+        user_id: exisingInspector._id,
+        phone_number: exisingInspector.phone_number
+      })
+    const otp = sendOTP.data
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: `OTP Sent To ${formatted} successfully`,
+      data: {
+        inspector: exisingInspector,
+        otp
+      }
+    }
+
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error?.message,
+      data: error
+    };
+  }
+};
+
+exports.resetPassword = async (payload) => {
+  try {
+    const  {
+      inspector,
+      new_password,
+      otp
+    } = payload
+    
+     const verifyOTP = await validateOTP({
+      user_id: inspector._id,
+      otp:otp
+    })
+     if(verifyOTP.status === "error"){
+      return verifyOTP
+    }
+
+    const hashed = await hashPassword(new_password)
+    const updated = await Inspector.findByIdAndUpdate(inspector._id, {
+      password: hashed,
+      regCompleted: true
+    }, {new:true})
+
+       
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: `Log In Successful`,
+      data: updated
+    }
+
+  } catch (error) {
+    console.log(error);
     return {
       status: "error",
       code: HTTP_SERVER_ERROR,

@@ -15,7 +15,12 @@ const {
   syncCameraFromHub,
   syncLocationTrackerFromHub,
   approveDriverApplicationQuick,
-  fetchAssignedApplications
+  fetchAssignedApplications,
+  viewProfile,
+  updatePassword,
+  forgotPassword,
+  resetPassword,
+  
 } = require("./service");
 
 exports.loginController = async (req, res) => {
@@ -52,6 +57,110 @@ exports.createPasswordController = async (req, res) => {
       otp: req.body.otp
     }
     const {status, code, message, data} = await createPassword(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.viewInspectorProfileController = async (req, res) => {
+  try {
+    const payload = {
+      user: req.user
+    }
+    const {status, code, message, data} = await viewProfile(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.updatePasswordController = async (req, res) => {
+  try {
+    const payload = {
+      inspector: req.user,
+      password: req.body.current_password,
+      newPassword: req.body.new_password
+    }
+    const {status, code, message, data} = await updatePassword(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.forgotPasswordController = async (req, res) => {
+  try {
+    const payload = {
+      phone_number: req.body.phone_number
+    }
+    const {status, code, message, data} = await forgotPassword(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.resetPasswordController = async (req, res) => {
+  try {
+    const payload = {
+      inspector: req.user,
+      new_password: req.body.new_password,
+      otp: req.body.otp,
+    }
+    const {status, code, message, data} = await resetPassword(payload);
     return responseObject(
       res,
       code,

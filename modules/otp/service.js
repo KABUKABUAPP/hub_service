@@ -146,7 +146,7 @@ exports.validateOTP = async (payload) => {
     return {
       status: "error",
       code: HTTP_SERVER_ERROR,
-      message: error?.message,
+      message: "OTP Validation Failed, Try Requesting For A New OTP",
       data: error
     };
   }
