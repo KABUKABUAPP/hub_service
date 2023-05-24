@@ -56,7 +56,7 @@ exports.verifyJwt = (token) => {
 // Issues JWT tokens to users
 exports.issueJwt = (user) => {
   const payload = {
-    id: user._id,
+    id: user?._id,
     email: user?.email?user.email: undefined,
     phone_number: user?.phone_number?user.phone_number: undefined
   };

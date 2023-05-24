@@ -55,3 +55,17 @@ exports.synchDevicesSchema = Joi.object().keys({
   inspection_code: Joi.string().required(),
   device_number: Joi.string().required(),
 })
+
+exports.updatePasswordSchema = Joi.object().keys({
+  current_password: Joi.string().required(),
+  new_password: Joi.string().required(),
+});
+
+exports.forgotPasswordSchema = Joi.object().keys({
+  phone_number: Joi.string().required(),
+});
+
+exports.resetPasswordSchema = Joi.object().keys({
+  new_password: Joi.string().required(),
+  otp: Joi.number().required(),
+});
