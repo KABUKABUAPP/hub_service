@@ -32,7 +32,7 @@ exports.isAuthorized = async (req, _res, next) => {
         {
           status: "error",
           code: HTTP_BAD_REQUEST,
-          message:"Invalid jwt passed",
+          message:"Authorization Failed",
           data: null,
 
         }
@@ -55,7 +55,6 @@ exports.isAuthorized = async (req, _res, next) => {
         responseObject(_res, respo.code, respo.status, respo.data, respo.message)
       )      
     } else {
-      console.log("INSPECTOR RE OOOOhhh", existingInspector)
       req.user = existingInspector
       req.token = token,
       req.userId = existingInspector._id

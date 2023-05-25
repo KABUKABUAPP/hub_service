@@ -572,12 +572,12 @@ exports.fetchAssignedApplications = async(payload) => {
       user,
       limit,
       page,
-      isVerified
+      approval_status
     } = payload
     const pendingApplications = await axiosRequestFunction({
       url: config_env.RIDE_SERVICE_BASE_URL + `/driver/fetch-assigned-applications/${user?.assigned_hub}`,
       method: "get",
-      params: {limit, page, isVerified:isVerified},
+      params: {limit, page, approval_status:approval_status},
       headers: {hubid: user._id}
     })
 

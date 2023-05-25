@@ -82,6 +82,7 @@ router.get(
 
 router.post(
   "/approve-driver/:id",
+  isAuthorized,
   validateRequest(modelIdSchema, "params"),
   validateRequest(approveDeclineDriverSchema, "body"),
   approveDeclineDriverApplicationController

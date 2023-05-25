@@ -13,8 +13,7 @@ exports.quickApproveSchema = Joi.object().keys({
 exports.paginateSchema = Joi.object().keys({
   limit: Joi.number().optional(),
   page: Joi.number().optional(),
-  isVerified: Joi.boolean().default(false).optional(),
-
+  approval_status: Joi.string().valid('active', 'declined', 'pending').default('pending').optional(),
 })
 
 exports.addNewInspectorSchema = Joi.object().keys({
