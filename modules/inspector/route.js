@@ -15,7 +15,8 @@ const {
   viewInspectorProfileController,
   updatePasswordController,
   forgotPasswordController,
-  resetPasswordController
+  resetPasswordController,
+  viewADriverController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
 const { 
@@ -115,6 +116,13 @@ router.get(
   isAuthorized, 
   validateRequest(paginateSchema, "query"),
   fetchAssignedApplicationsController
+);
+
+router.get(
+  "/view-a-driver/:id", 
+  isAuthorized, 
+  validateRequest(modelIdSchema, "params"),
+  viewADriverController
 );
 
 module.exports = router;

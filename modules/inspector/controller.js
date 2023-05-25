@@ -20,6 +20,7 @@ const {
   updatePassword,
   forgotPassword,
   resetPassword,
+  viewADriver,
   
 } = require("./service");
 
@@ -321,6 +322,32 @@ exports.fetchAssignedApplicationsController = async (req, res) => {
       approval_status: req.query.approval_status
     }
     const {status, code, message, data} = await fetchAssignedApplications(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.viewADriverController = async (req, res) => {
+  try {
+    const payload = {
+      user: req.user,
+      driver_id: req.params.id
+    }
+    const {status, code, message, data} = await viewADriver(payload);
     return responseObject(
       res,
       code,
