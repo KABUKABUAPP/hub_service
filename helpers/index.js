@@ -7,6 +7,7 @@ const axios = require('axios')
 // dotenv.config();
 const config = require("../config_env");
 const bcrypt = require("bcryptjs");
+const { HTTP_SERVER_ERROR } = require("./httpCodes");
 
 exports.hashPassword = (password) => {
   return bcrypt.hashSync(password, bcrypt.genSaltSync(8));
@@ -47,6 +48,7 @@ exports.verifyJwt = (token) => {
   return jwt.verify(token, config.JWT_SECRET, (err, decoded) => {
     if (err) {
       console.log(err);
+      return err
     }
 
     return decoded;
