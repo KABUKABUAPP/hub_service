@@ -591,3 +591,26 @@ exports.fetchAssignedApplications = async(payload) => {
     };
   }
 }
+
+exports.viewADriver = async(payload) => {
+  try {
+    const {
+      user,
+      driver_id
+    } = payload
+    const pendingApplications = await axiosRequestFunction({
+      url: config_env.RIDE_SERVICE_BASE_URL + `/driver/view-driver-from-hub/${driver_id}`,
+      method: "get",
+      headers: {hubid: user._id}
+    })
+
+    return pendingApplications
+  } catch (error) {
+    console.log(error);
+    return {
+      status:"error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message
+    };
+  }
+}
