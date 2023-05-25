@@ -209,7 +209,7 @@ exports.approveDeclineDriverApplicationController = async (req, res) => {
   try {
     const payload = {
       inspector: req.user,
-      hub_id: req.assigned_hub,
+      hub_id: req.user.assigned_hub,
       driver_id: req.params.id,
       approval_status: req.body.approval_status,
       reason: req.body.reason
@@ -318,7 +318,7 @@ exports.fetchAssignedApplicationsController = async (req, res) => {
       user: req.user,
       limit: req.query.limit,
       page: req.query.page,
-      isVerified: req.query.isVerified
+      approval_status: req.query.approval_status
     }
     const {status, code, message, data} = await fetchAssignedApplications(payload);
     return responseObject(
