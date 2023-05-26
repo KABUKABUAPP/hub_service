@@ -14,6 +14,8 @@ exports.paginateSchema = Joi.object().keys({
   limit: Joi.number().optional(),
   page: Joi.number().optional(),
   approval_status: Joi.string().valid('active', 'declined', 'pending').default('pending').optional(),
+  date: Joi.string().allow(null).allow("").optional(),
+  driver_name: Joi.string().allow(null).allow("").optional(),
 })
 
 exports.addNewInspectorSchema = Joi.object().keys({
