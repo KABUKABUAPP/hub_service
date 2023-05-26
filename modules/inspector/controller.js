@@ -319,7 +319,9 @@ exports.fetchAssignedApplicationsController = async (req, res) => {
       user: req.user,
       limit: req.query.limit,
       page: req.query.page,
-      approval_status: req.query.approval_status
+      approval_status: req.query.approval_status,
+      date: req.query.date,
+      driver_name: req.query.driver_name,
     }
     const {status, code, message, data} = await fetchAssignedApplications(payload);
     return responseObject(
