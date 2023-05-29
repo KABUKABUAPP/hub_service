@@ -9,7 +9,8 @@ const {
 const { 
   addNewInspectorService,
   fetchInspectorByIdService,
-  getAllInspectorsService
+  getAllInspectorsService,
+  viewInspectedCars
 } = require("./service");
 
 exports.addNewInspectorController = async (req, res, next) => {
@@ -85,6 +86,42 @@ exports.getAllInspectorsController = async (req, res, next) => {
     }
 
     const {status, code, message, data} = await getAllInspectorsService(payload);
+
+    return next (
+      responseObject(
+        res,
+        code,
+        status,
+        data,
+        message
+      )
+    );
+  } catch (error) {
+    console.log(error);
+    return next(
+      responseObject(
+        res,
+        HTTP_SERVER_ERROR,
+        "error",
+        null,
+        error.toString()
+      )
+    )
+  }
+};
+
+
+exports.viewInspectedCarsController = async (req, res, next) => {
+  try {
+    const payload = {
+      limit: req.query.limit,
+      page: req.query.page,
+      search: req.query.search,
+      status: req.query.status,
+      inspector_id: req.params.id
+    }
+
+    const {status, code, message, data} = await viewInspectedCars(payload);
 
     return next (
       responseObject(

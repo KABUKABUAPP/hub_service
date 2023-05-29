@@ -6,6 +6,7 @@ const {
   generateRandomString,
   hashPassword,
   formatPhoneNumber,
+  axiosRequestFunction,
 } = require("../../../helpers");
 const {
   HTTP_OK,
@@ -32,6 +33,7 @@ const {
   getPaginatedRecords
 } = require('../../../helpers/paginate');
 const { messaging } = require("../../../helpers/constants");
+const config_env = require("../../../config_env");
 //const { sendQueue } = require('../queues/index');
 
 exports.addNewInspectorService = async (payload) => {
@@ -138,7 +140,8 @@ exports.getAllInspectorsService = async (payload) => {
     } = payload
     const inspectors = await getPaginatedRecords(Inspector, {
       limit: limit?Number(limit):10,
-      page: page?Number(page):1
+      page: page?Number(page):1,
+      data: {regCompleted: true}
     })
 
     return {
@@ -147,6 +150,37 @@ exports.getAllInspectorsService = async (payload) => {
       message: "inspectors fetched successfully",
       data: inspectors,
     };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+};
+
+
+exports.viewInspectedCars = async (payload) => {
+  try {
+    const {
+      inspector_id,
+      status,
+      search,
+      limit,
+      page
+    } = payload
+    console.log(payload)
+    const axiosReq = await axiosRequestFunction({
+      method: "get",
+      url: config_env.RIDE_SERVICE_BASE_URL + `/car/view-inspected-cars/${inspector_id}`,
+      params: {
+        limit, page, status, search
+      }
+    })
+    return axiosReq
+
   } catch (error) {
     console.log(error);
     return {
