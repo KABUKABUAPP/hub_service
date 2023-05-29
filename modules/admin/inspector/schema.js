@@ -31,3 +31,11 @@ exports.userloginSchema = Joi.object().keys({
   email: Joi.string().email().trim().required(),
   password: Joi.string().required(),
 });
+
+exports.viewInspectedCarsSchema = Joi.object().keys({
+  limit: Joi.number().positive().required(),
+  page: Joi.number().positive().required(),
+  status: Joi.string().valid("approved", "declined").required(),
+  search: Joi.string().allow(null).allow("").optional(),
+
+})

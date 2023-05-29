@@ -418,7 +418,8 @@ exports.approveDeclineDriverApplication = async (payload) => {
       url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
       data: {
         approval_status: approval_status,
-        reason: reason
+        reason: reason,
+        inspector_id: inspector._id
       }
     })
     if(axiosToAuth.status !== "success"){
