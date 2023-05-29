@@ -5,13 +5,15 @@ const { authTest, authorizeAdmin } = require("../../../middlewares/auth");
 const { 
   addNewInspectorController,
   fetchInspectorByIdController,
-  getAllInspectorsController
+  getAllInspectorsController,
+  viewInspectedCarsController
  } = require("./controller");
 const validateRequest = require("../../../middlewares/validateRequest");
 const { 
   addNewInspectorSchema,
   modelIdSchema,
-  paginateSchema
+  paginateSchema,
+  viewInspectedCarsSchema
 } = require("./schema");
 
 const router = Router();
@@ -36,6 +38,14 @@ router.get(
   authorizeAdmin("All"), 
   validateRequest(paginateSchema, 'query'),
   getAllInspectorsController
+);
+
+router.get(
+  "/view-inspected-cars/:id",
+  authorizeAdmin("All"),
+  validateRequest(modelIdSchema, 'params'),
+  validateRequest(viewInspectedCarsSchema, 'query'),
+  viewInspectedCarsController
 );
 
 module.exports = router;
