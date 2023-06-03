@@ -18,35 +18,34 @@ const {
   deleteRedisData,
   deleteRedisMany,
 } = require("../../helpers/cache");
-const { Hub } = require("../../models");
+const { Hub, InspectionDetails } = require("../../models");
 //const { sendQueue } = require('../queues/index');
 
 exports.updateHubInspections = async (payload) => {
   try {
     const {
       hub_id,
-      status
+      status,
+      driver_id
     } = payload
     const hub = await Hub.findById(hub_id)
     if(hub){
+      const no_of_cars = await InspectionDetails.find({hub: hub_id}).countDocuments()
+      const no_of_cars_processed = await InspectionDetails.find({hub: hub_id, status: status}).countDocuments()
       if (status === "approved"){
         await Hub.findByIdAndUpdate(hub_id, 
-          { $inc : 
-            { 
-              "cars_processed" : 1, 
-              "cars_approved" : 1, 
-            } 
+          { 
+            cars_processed: no_of_cars,
+            cars_approved: no_of_cars_processed
           }
 
         )
       }
       if(status === "declined"){
         await Hub.findByIdAndUpdate(hub_id, 
-          { $inc : 
-            { 
-              "cars_processed" : 1, 
-              "cars_declined" : 1, 
-            } 
+          {  
+            cars_processed: no_of_cars,
+            cars_declined: no_of_cars_processed
           }
 
         )

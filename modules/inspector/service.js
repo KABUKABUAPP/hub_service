@@ -19,6 +19,7 @@ const {
 } = require("../../helpers/httpCodes");
 const {
   Inspector,
+  InspectionDetails,
   Hub,
   OneTimePassword
 } = require('../../models')
@@ -362,57 +363,27 @@ exports.approveDeclineDriverApplication = async (payload) => {
       approval_status,
       reason
     } = payload
-    let message
-    let hubUpdate 
+    let message, 
+      hubUpdate, 
+      finalAxiosReq, 
+      no_of_cars_processed, 
+      no_of_cars_approved, 
+      no_of_cars_declined
 
   if(String(approval_status).toLowerCase() === "active"){
     message = "Driver Application Approved Successfully"
-    const axiosReq = await axiosRequestFunction({
-      method: "get",
-      url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/verify-driver-approval/${driver_id}`
-    })
-    if(axiosReq.status !== "success"){
-      return {
-        status: "error",
-        code: axiosReq.code,
-        message: axiosReq.message
-      }
-    }
+    // const axiosReq = await axiosRequestFunction({
+    //   method: "get",
+    //   url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/verify-driver-approval/${driver_id}`
+    // })
+    // if(axiosReq.status !== "success"){
+    //   return {
+    //     status: "error",
+    //     code: axiosReq.code,
+    //     message: axiosReq.message
+    //   }
+    // }
     console.log("INSPECTOR??????", inspector);
-    await Inspector.findByIdAndUpdate(inspector._id, 
-      { $inc : 
-        { 
-          "cars_processed" : 1, 
-          "cars_approved" : 1, 
-        } 
-      }
-    )
-    hubUpdate = {
-      hub_id: inspector.assigned_hub,
-      status: "approved"
-    }
-    //update hub center
-    await updateHubInspections(hubUpdate)
-
-
-  } else {
-    message = 'Driver Application Declned Successfully'
-    await Inspector.findByIdAndUpdate(inspector._id, 
-      { $inc : 
-        { 
-          "cars_processed" : 1, 
-          "cars_declined" : 1, 
-        } 
-      }
-    )
-    hubUpdate = {
-      hub_id: inspector.assigned_hub,
-      status: "declined"
-    }
-    await updateHubInspections(hubUpdate)
-  }
-
-    //Complete Driver Onboarding
     const axiosToAuth = await axiosRequestFunction({
       method: "put",
       url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
@@ -429,13 +400,98 @@ exports.approveDeclineDriverApplication = async (payload) => {
         message: axiosToAuth.message
       }
     }
-    return {
-      status: "success",
-      code: axiosToAuth?.code,
-      message: axiosToAuth?.message,
-      data: axiosToAuth?.data
+    const inspected = await InspectionDetails.findOne({inspector: inspector._id, driver: driver_id, hub: inspector?.assigned_hub })
+    if(inspected){
+      await InspectionDetails.findByIdAndUpdate(inspected?._id, {
+        status: "approved",
+      }, {new:true})
+      no_of_cars_processed = await InspectionDetails.find({inspector: inspector._id, driver: driver_id,}).countDocuments();
+      no_of_cars_approved = await InspectionDetails.find({inspector: inspector._id, driver: driver_id, status: "approved"}).countDocuments();
+    
+    } else {
+      await InspectionDetails.create({
+        driver: driver_id,
+        status: "approved",
+        inspector: inspector?._id,
+        hub: inspector?.assigned_hub
+      })
+      no_of_cars_processed = await InspectionDetails.find({inspector: inspector._id, driver: driver_id,}).countDocuments();
+      no_of_cars_approved = await InspectionDetails.find({inspector: inspector._id, driver: driver_id, status: "approved"}).countDocuments();
+    
     }
+    const afterInspector = await Inspector.findByIdAndUpdate(inspector?._id, {
+      cars_processed: no_of_cars_processed,
+      cars_approved: no_of_cars_approved
+    }, {new:true})
+    hubUpdate = {
+      hub_id: afterInspector.assigned_hub,
+      driver_id: driver_id,
+      status: "approved"
+    }
+    //update hub center
+    await updateHubInspections(hubUpdate)
+    finalAxiosReq = axiosToAuth
 
+  } else {
+    message = 'Driver Application Declned Successfully'
+    const axiosToAuth = await axiosRequestFunction({
+      method: "put",
+      url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
+      data: {
+        approval_status: approval_status,
+        reason: reason,
+        inspector_id: inspector._id
+      }
+    })
+    if(axiosToAuth.status !== "success"){
+      return {
+        status: "error",
+        code: axiosToAuth.code,
+        message: axiosToAuth.message
+      }
+    }
+    const inspected = await InspectionDetails.findOne({inspector: inspector._id, driver: driver_id, hub: inspector?.assigned_hub })
+    if(inspected){
+      await InspectionDetails.findByIdAndUpdate(inspected?._id, {
+        status: "declined",
+      }, {new:true})
+      no_of_cars_processed = await InspectionDetails.find({inspector: inspector._id, driver: driver_id,}).countDocuments();
+      no_of_cars_declined = await InspectionDetails.find({inspector: inspector._id, driver: driver_id, status: "declined"}).countDocuments();
+    } else {
+      await InspectionDetails.create({
+        driver: driver_id,
+        status: "declined",
+        inspector: inspector?._id,
+        hub: inspector?.assigned_hub
+      })
+      no_of_cars_processed = await InspectionDetails.find({inspector: inspector._id, driver: driver_id,}).countDocuments();
+      no_of_cars_declined = await InspectionDetails.find({inspector: inspector._id, driver: driver_id, status: "approved"}).countDocuments();
+    
+    }
+    const afterInspector = await Inspector.findByIdAndUpdate(inspector?._id, {
+      cars_processed: no_of_cars_processed,
+      cars_declined: no_of_cars_declined
+    }, {new:true})
+    hubUpdate = {
+      hub_id: afterInspector.assigned_hub,
+      driver_id: driver_id,
+      status: "declined"
+    }
+    await updateHubInspections(hubUpdate)
+    finalAxiosReq = axiosToAuth
+    
+  }
+
+    //Complete Driver Onboarding
+    console.log("TOTAL_CARS_PROCESSED>>>>", no_of_cars_processed);
+    console.log("TOTAL_CARS_APPROVED>>>>", no_of_cars_approved);
+    console.log("TOTAL_CARS_DECLINED>>>>", no_of_cars_declined);
+    return {
+      status: finalAxiosReq?.status,
+      code: finalAxiosReq?.code,
+      message: finalAxiosReq?.message,
+      data: finalAxiosReq?.data
+    }
   } catch (error) {
     return {
       status:"error",
