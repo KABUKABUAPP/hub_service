@@ -8,7 +8,7 @@ const schema = mongoose.Schema(
       enum: ["approved", "declined", "pending"],
       default: "pending",
     },
-    inpector: {
+    inspector: {
       type: mongoose.Types.ObjectId,
       ref: "Inspector",
     },
