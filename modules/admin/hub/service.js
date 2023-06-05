@@ -27,7 +27,8 @@ const {
 } = require("../../../helpers/cache");
 const {
   getPaginatedRecords
-} = require('../../../helpers/paginate')
+} = require('../../../helpers/paginate');
+const { inspectorsHubsCars } = require("../../inspector/service");
 //const { sendQueue } = require('../queues/index');
 
 exports.addNewHubService = async (payload) => {
@@ -111,6 +112,11 @@ exports.fetchHubByIdService = async (id) => {
       }
     }
 
+    const inspectRecord = await inspectorsHubsCars({hub_id: hub?._id})
+    hub.cars_processed = inspectRecord?.data.cars_processed_in_hub
+    hub.cars_approved = inspectRecord?.data.cars_approved_in_hub
+    hub.cars_declined = inspectRecord?.data.cars_declined_in_hub
+    hub.save()
 
     return {
       status: "success",

@@ -69,6 +69,13 @@ exports.login = async (payload) => {
     const token = issueJwt(inspector)
    const loggedInInspector = await Inspector.findByIdAndUpdate(inspector._id, 
       {access_token: token}, {new: true})
+    const cars_processed = await InspectionDetails.find({inspector: loggedInInspector?._id}).countDocuments()
+    const cars_approved = await InspectionDetails.find({inspector: loggedInInspector?._id, status: "approved"}).countDocuments()
+    const cars_declined = await InspectionDetails.find({inspector: loggedInInspector?._id,  status: "declined"}).countDocuments()
+    loggedInInspector.cars_processed = cars_processed
+    loggedInInspector.cars_approved = cars_approved
+    loggedInInspector.cars_declined = cars_declined
+    loggedInInspector.save()
     return {
       status: "success",
       code: HTTP_OK,
@@ -147,6 +154,14 @@ exports.viewProfile = async (payload) => {
     const  {
       user
     } = payload
+
+     const cars_processed = await InspectionDetails.find({inspector: user?._id}).countDocuments()
+    const cars_approved = await InspectionDetails.find({inspector: user?._id, status: "approved"}).countDocuments()
+    const cars_declined = await InspectionDetails.find({inspector: user?._id,  status: "declined"}).countDocuments()
+    user.cars_processed = cars_processed
+    user.cars_approved = cars_approved
+    user.cars_declined = cars_declined
+    user.save()
 
     return {
       status: "success",
@@ -673,3 +688,37 @@ exports.viewADriver = async(payload) => {
     };
   }
 }
+exports.inspectorsHubsCars = async({inspector_id, hub_id}) => {
+  try {
+    const cars_processed_by_inspector = await InspectionDetails.find({inspector: inspector_id}).countDocuments()
+    const cars_approved_by_inspector = await InspectionDetails.find({inspector: inspector_id, status: "approved"}).countDocuments()
+    const cars_declined_by_inspector  = await InspectionDetails.find({inspector: inspector_id,  status: "declined"}).countDocuments()
+    const cars_processed_in_hub = await InspectionDetails.find({hub: hub_id}).countDocuments()
+    const cars_approved_in_hub = await InspectionDetails.find({hub: hub_id, status: "approved"}).countDocuments()
+    const cars_declined_in_hub  = await InspectionDetails.find({hub: hub_id,  status: "declined"}).countDocuments()
+    const data = {
+      cars_processed_by_inspector,
+      cars_approved_by_inspector,
+      cars_declined_by_inspector,
+      cars_processed_in_hub,
+      cars_approved_in_hub,
+      cars_declined_in_hub,
+    }
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: "inspected car data retreived successfully",
+      data
+    }
+
+    
+  } catch (error) {
+     console.log(error);
+    return {
+      status:"error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message
+    };
+  }
+} 
