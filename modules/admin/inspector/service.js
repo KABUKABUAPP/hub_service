@@ -166,7 +166,7 @@ exports.getAllInspectorsService = async (payload) => {
       status: "success",
       code: HTTP_OK,
       message: "inspectors fetched successfully",
-      data: {inspectors, pagination: records.pagination}
+      data: {data: inspectors, pagination: records.pagination}
     };
   } catch (error) {
     console.log(error);
