@@ -153,11 +153,12 @@ exports.getAllInspectorsService = async (payload) => {
 
     inspectors = await Promise.all(
         inspectors.map(async (an_inspector) => {
+          let obj = {...an_inspector}
           const inspectionData = await inspectorsHubsCars({inspector_id: an_inspector?._id})
-          an_inspector.cars_processed = inspectionData.data.cars_processed_by_inspector
-          an_inspector.cars_approved = inspectionData.data.cars_approved_by_inspector
-          an_inspector.cars_declined = inspectionData.data.cars_declined_by_inspector
-          return an_inspector
+          obj._doc.cars_processed = inspectionData.data.cars_processed_by_inspector
+          obj._doc.cars_approved = inspectionData.data.cars_approved_by_inspector
+          obj._doc.cars_declined = inspectionData.data.cars_declined_by_inspector
+          return obj._doc
         })
       )
   
@@ -165,7 +166,7 @@ exports.getAllInspectorsService = async (payload) => {
       status: "success",
       code: HTTP_OK,
       message: "inspectors fetched successfully",
-      data: inspectors,
+      data: {inspectors, pagination: records.pagination}
     };
   } catch (error) {
     console.log(error);
