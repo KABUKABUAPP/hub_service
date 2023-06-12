@@ -5,6 +5,10 @@ exports.modelIdSchema = Joi.object().keys({
   id: Joi.string().required()
 })
 
+exports.quickApproveSchema = Joi.object().keys({
+  inspection_code: Joi.string().required()
+})
+
 exports.paginateSchema = Joi.object().keys({
   limit: Joi.number().optional(),
   page: Joi.number().optional(),
@@ -27,15 +31,26 @@ exports.addNewInspectorSchema = Joi.object().keys({
 
 });
 
-exports.userloginSchema = Joi.object().keys({
-  email: Joi.string().email().trim().required(),
+exports.loginSchema = Joi.object().keys({
+  phone_number: Joi.string().required(),
   password: Joi.string().required(),
 });
 
-exports.viewInspectedCarsSchema = Joi.object().keys({
-  limit: Joi.number().positive().required(),
-  page: Joi.number().positive().required(),
-  status: Joi.string().valid("approved", "declined").required(),
-  search: Joi.string().allow(null).allow("").optional(),
+exports.fetchDriverSchema = Joi.object().keys({
+  inspection_code: Joi.string().required(),
+});
 
+exports.approveDeclineDriverSchema = Joi.object().keys({
+  approval_status: Joi.string().valid('active', 'declined').required(),
+  reason: Joi.string().optional(),
+});
+
+exports.synchDevicesSchema = Joi.object().keys({
+  inspection_code: Joi.string().required(),
+  device_number: Joi.string().required(),
+})
+
+exports.fetchHubByLocationSchema = Joi.object().keys({
+  state: Joi.string().required(),
+  city: Joi.string().required(),
 })

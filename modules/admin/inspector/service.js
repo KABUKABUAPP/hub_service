@@ -2,6 +2,11 @@ const {
   responseObject,
   authorFewPopulate,
   getVibersIds,
+  getRandomRef,
+  generateRandomString,
+  hashPassword,
+  formatPhoneNumber,
+  axiosRequestFunction,
 } = require("../../../helpers");
 const {
   HTTP_OK,
@@ -26,7 +31,10 @@ const {
 } = require("../../../helpers/cache");
 const {
   getPaginatedRecords
-} = require('../../../helpers/paginate')
+} = require('../../../helpers/paginate');
+const { messaging } = require("../../../helpers/constants");
+const config_env = require("../../../config_env");
+const { inspectorsHubsCars } = require("../../inspector/service");
 //const { sendQueue } = require('../queues/index');
 
 exports.addNewInspectorService = async (payload) => {
@@ -54,15 +62,29 @@ exports.addNewInspectorService = async (payload) => {
       }
     }
 
+    const randomPassword = generateRandomString(8)
+    const hash = hashPassword(randomPassword)
     const newInspector = await Inspector.create({
       first_name,
       last_name,
-      phone_number,
+      phone_number: formatPhoneNumber(phone_number),
       house_address,
       city,
       state,
-      email
+      email,
+      password: hash
     });
+    const mailData = {
+      first_name,
+      last_name,
+      phone_number: formatPhoneNumber(phone_number),
+      email,
+      password: randomPassword
+    }
+    sendQueue(
+      messaging.NOTIFICATION_MAIL_TO_NEW_INSPECTOR,
+      Buffer.from(JSON.stringify(mailData))
+    )
 
     return {
       status: "success",
@@ -92,6 +114,11 @@ exports.fetchInspectorByIdService = async (id) => {
       }
     }
 
+    const inspectRecord = await inspectorsHubsCars({inspector_id: inspector?._id})
+    inspector.cars_processed = inspectRecord?.data.cars_processed_by_inspector
+    inspector.cars_approved = inspectRecord?.data.cars_approved_by_inspector
+    inspector.cars_declined = inspectRecord?.data.cars_declined_by_inspector
+    inspector.save()
 
     return {
       status: "success",
@@ -117,17 +144,61 @@ exports.getAllInspectorsService = async (payload) => {
       limit,
       page
     } = payload
-    const inspectors = await getPaginatedRecords(Inspector, {
+    const records = await getPaginatedRecords(Inspector, {
       limit: limit?Number(limit):10,
-      page: page?Number(page):1
+      page: page?Number(page):1,
+      data: {regCompleted: true}
     })
+    let inspectors = records.data
 
+    inspectors = await Promise.all(
+        inspectors.map(async (an_inspector) => {
+          let obj = {...an_inspector}
+          const inspectionData = await inspectorsHubsCars({inspector_id: an_inspector?._id})
+          obj._doc.cars_processed = inspectionData.data.cars_processed_by_inspector
+          obj._doc.cars_approved = inspectionData.data.cars_approved_by_inspector
+          obj._doc.cars_declined = inspectionData.data.cars_declined_by_inspector
+          return obj._doc
+        })
+      )
+  
     return {
       status: "success",
       code: HTTP_OK,
       message: "inspectors fetched successfully",
-      data: inspectors,
+      data: {data: inspectors, pagination: records.pagination}
     };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+};
+
+
+exports.viewInspectedCars = async (payload) => {
+  try {
+    const {
+      inspector_id,
+      status,
+      search,
+      limit,
+      page
+    } = payload
+    console.log(payload)
+    const axiosReq = await axiosRequestFunction({
+      method: "get",
+      url: config_env.RIDE_SERVICE_BASE_URL + `/car/view-inspected-cars/${inspector_id}`,
+      params: {
+        limit, page, status, search
+      }
+    })
+    return axiosReq
+
   } catch (error) {
     console.log(error);
     return {

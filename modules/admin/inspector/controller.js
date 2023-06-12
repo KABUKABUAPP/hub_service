@@ -1,4 +1,4 @@
-const { responseObject, authorFewPopulate } = require("../../../helpers");
+const { responseObject, authorFewPopulate, formatPhoneNumber } = require("../../../helpers");
 const {
   HTTP_OK,
   HTTP_CREATED,
@@ -9,7 +9,8 @@ const {
 const { 
   addNewInspectorService,
   fetchInspectorByIdService,
-  getAllInspectorsService
+  getAllInspectorsService,
+  viewInspectedCars
 } = require("./service");
 
 exports.addNewInspectorController = async (req, res, next) => {
@@ -18,7 +19,7 @@ exports.addNewInspectorController = async (req, res, next) => {
       first_name: String(req.body.first_name).toLowerCase(),
       last_name: String(req.body.last_name).toLowerCase(),
       house_address: String(req.body.house_address).toLowerCase(),
-      phone_number: String(req.body.phone_number).toLowerCase(),
+      phone_number: formatPhoneNumber(String(req.body.phone_number).toLowerCase()),
       city: String(req.body.city).toLowerCase(),
       state: String(req.body.state).toLowerCase(),
       email: String(req.body.email).toLowerCase()
@@ -85,6 +86,42 @@ exports.getAllInspectorsController = async (req, res, next) => {
     }
 
     const {status, code, message, data} = await getAllInspectorsService(payload);
+
+    return next (
+      responseObject(
+        res,
+        code,
+        status,
+        data,
+        message
+      )
+    );
+  } catch (error) {
+    console.log(error);
+    return next(
+      responseObject(
+        res,
+        HTTP_SERVER_ERROR,
+        "error",
+        null,
+        error.toString()
+      )
+    )
+  }
+};
+
+
+exports.viewInspectedCarsController = async (req, res, next) => {
+  try {
+    const payload = {
+      limit: req.query.limit,
+      page: req.query.page,
+      search: req.query.search,
+      status: req.query.status,
+      inspector_id: req.params.id
+    }
+
+    const {status, code, message, data} = await viewInspectedCars(payload);
 
     return next (
       responseObject(

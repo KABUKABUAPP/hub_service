@@ -1,55 +1,80 @@
-// // const jwt = require('jsonwebtoken');
-// const { responseObject, authorFewPopulate } = require("../helpers");
-// const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED } = require("../helpers/httpCodes");
-// // const Users = require("../models/user");
-// // const db = require('../models');
-// // const Users = db.users;
+const jwt = require('jsonwebtoken');
+const { responseObject, authorFewPopulate, verifyJwt, axiosRequestFunction, formatPhoneNumber } = require("../helpers");
+const { HTTP_BAD_REQUEST, HTTP_UNAUTHORIZED, HTTP_SERVER_ERROR, HTTP_NOT_FOUND } = require("../helpers/httpCodes");
+const {Inspector} = require("../models");
+const config_env = require('../config_env');
 
-// exports.isAuthorized = async (req, _, next) => {
-//   try {
-//     const token =
-//     req.headers.authorization && req.headers.authorization.split(" ")[1];
+exports.isAuthorized = async (req, _res, next) => {
+  try {
+    const token =
+    req.headers.authorization && req.headers.authorization.split(" ")[1];
 
-//     if (!token) {
-//       return next( 
-//         {
-//           status: "error",
-//           code: HTTP_UNAUTHORIZED,
-//           message:"Authorization token is missing.",
-//         }
-//       );
-//     }
+    if (!token) {
+      const respo = 
+        {
+          status: "error",
+          code: HTTP_UNAUTHORIZED,
+          message:"Authorization token is missing.",
+          data: null,
 
-//    const {id} = verifyJwt(token);
+        }
+      
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )
+    }
 
 
-//     const existingUser =  await User.findById(id);
-//     if(!existingUser){
-//       return next( 
-//         {
-//           status: "error",
-//           code: HTTP_UNAUTHORIZED ,
-//           message:'Unauthorized to perform this action',
-//         }
-//       );
-//     } else {
-//       req.user = existingUser
-//       req.token = token,
-//       req.userId = existingUser._id
-//       return next()
-//     }
+   const {id} = verifyJwt(token);
+  //  console.log("DESTRUCTURE token", tokenSplit);
+    if (!id) {
+      const respo = 
+        {
+          status: "error",
+          code: HTTP_BAD_REQUEST,
+          message:"Authorization Failed",
+          data: null,
 
-//   } catch (error) {
-//     console.log(error);
-//     return {
-//       status: "error",
-//       code: HTTP_SERVER_ERROR,
-//       message: error.message,
-//       data: error
-//     }
-//   }
-// }
+        }
+      
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )
+    }
 
+
+    const existingInspector =  await Inspector.findById(id);
+    // console.log(existingUser);
+    if(!existingInspector){
+       const respo =  {
+          status: "error",
+          code: HTTP_UNAUTHORIZED ,
+          message:'Unauthorized to perform this action',
+        }
+      return next(
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      )      
+    } else {
+      req.user = existingInspector
+      req.token = token,
+      req.userId = existingInspector._id
+      return next()
+    }
+    
+
+  } catch (error) {
+    console.log(error);
+    const respo = {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message,
+      data: error
+    }
+    return next(
+      responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+    ) 
+  }
+}
 // exports.authTest = async (req, res, next) => {
 //   try {
 //     console.log("req#@", req.headers);
@@ -149,3 +174,96 @@
 // //     if (error) console.log(error);
 // //   }
 // // };
+
+exports.authorizeAdmin = (role) => {
+  return async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      try {
+        //   validate
+        const getAdmin = await axiosRequestFunction({
+          url: config_env.RIDE_SERVICE_BASE_URL+`/admin/auth/validate/${token}`,
+          method: "get"
+        })
+        if(getAdmin.status === "error"){
+          return getAdmin
+        }
+        const admin = getAdmin.data
+        console.log("THIS IS THE ADMIN DATA>>>>>>>>>>", admin)
+        const adminEmail = admin?.email
+        const adminId = admin?._id
+        if (
+          String(admin.role) === String(role) ||
+          String(role) === "All"
+        ) {
+          req.token = token;
+          req.userId = adminId
+          req.admin = adminEmail
+          next();
+        } else {
+          const data = {
+            code: 401,
+            status: "error",
+            message: "Unauthorized",
+          };
+          return res.status(401).json(data);
+        }
+      } catch (error) {
+        const data = {
+          code: 401,
+          status: "error",
+          message: error?.message,
+          data: error.stack,
+        };
+        return res.status(401).json(data);
+      }
+    } else {
+      const data = {
+        code: 401,
+        status: "error",
+        message: "Unauthorized",
+      };
+      return res.status(401).json(data);
+    }
+  };
+};
+
+exports.authorizeInspectorLogin = async (req, _res, next) => {
+  try {
+    const emailOrNumber = String(req.body.phone_number).includes("@")? req.body.phone_number:formatPhoneNumber(req.body.phone_number)
+    const existingInspector = String(emailOrNumber).includes('@')?
+    await Inspector.findOne({
+      email: {$regex: emailOrNumber, $options: "i"}
+    }): await Inspector.findOne({
+      phone_number: emailOrNumber
+    })
+
+     if (!existingInspector) {
+      const respo = {
+        status: "error",
+        code: HTTP_NOT_FOUND,
+        message: "Account Not Found",
+      }
+      return next( 
+        responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+      );
+    } else {
+      req.user = existingInspector
+      req.userId = existingInspector._id
+      return next()
+    }
+
+  } catch (error) {
+    console.log(error);
+    const respo = {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message,
+      data: error
+    }
+    return next(
+      responseObject(_res, respo.code, respo.status, respo.data, respo.message)
+    ) 
+  }
+}

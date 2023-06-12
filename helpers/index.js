@@ -1,14 +1,27 @@
 const crypto = require("crypto");
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
 const {cloudinary} = require('../config')
+const axios = require('axios')
 
-dotenv.config();
+// dotenv.config();
+const config = require("../config_env");
+const bcrypt = require("bcryptjs");
+const { HTTP_SERVER_ERROR } = require("./httpCodes");
+
+exports.hashPassword = (password) => {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8));
+};
+
+exports.comparePassword = (hashedPassword, password) => {
+  return bcrypt.compareSync(password, hashedPassword);
+};
 
 exports.verificationCode = () => {
-  const code = Math.floor(100000 + Math.random() * 900000);
+  const code = Math.floor(1000 + Math.random() * 9000);
   return code;
 };
+
 
 exports.encryptPassword = (password, salt) => {
   if (!password) return "";
@@ -31,29 +44,38 @@ exports.decryptPassword = (password, salt) => {
 };
 
 // VERIFY JWT tokens to users
-// exports.verifyJwt = (token) => {
-//   return jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-//     if (err) {
-//       console.log(err);
-//       return false;
-//     }
+exports.verifyJwt = (token) => {
+  return jwt.verify(token, config.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.log(err);
+      return err
+    }
 
-//     return decoded;
-//   });
-// };
+    return decoded;
+  });
+};
 
 // Issues JWT tokens to users
-// exports.issueJwt = (user) => {
-//   const payload = {
-//     id: user.id,
-//     email: user.email
-//   };
+exports.issueJwt = (user) => {
+  const payload = {
+    id: user?._id? user._id:user?.id,
+    email: user?.email?user.email: undefined,
+    phone_number: user?.phone_number?user.phone_number: undefined
+  };
 
-//   const signedToken = jwt.sign(payload, process.env.JWT_SECRET, {
-//     expiresIn: '1h'
-//   });
-//   return signedToken;
-// };
+  const signedToken = jwt.sign(payload, config.JWT_SECRET, {
+    // expiresIn: '1d'
+  });
+  return signedToken;
+};
+//Issue JWT for OTP
+exports.jwtForOtp = (data) => {
+
+  const signedToken = jwt.sign(data, config.JWT_SECRET, {
+    // expiresIn: '1d'
+  });
+  return signedToken;
+};
 
 // Returns a Backend response object
 exports.responseObject = (response, code, status, data, message) => {
@@ -227,4 +249,64 @@ exports.fileUploader = async (file) =>{
       },
     )
     return secure_url
+}
+
+exports.formatPhoneNumber =  (phone_number) => {
+  const stringed = String(phone_number)
+     let formated
+    formated = '+234'+ stringed.slice(-10)
+    return formated
+}
+
+
+exports.axiosRequestFunction = async({method,url,data,params,headers}) =>{
+  try {
+    const config = {
+      method: method,
+      url: url,
+      data: {...(data && data)},
+      params: {...(params &&params)},
+      headers: {...(headers &&headers)},
+
+    }
+    const res = await axios(config).catch(function (error) {
+      if (error.response) {
+        return {
+          status: error.response.data.status,
+          code: error.response.status,
+          message: error.response.data.message,
+        }
+      } else if (error.request) {
+        console.log("AXIOS ERROR REQUEST>>>>", error.request);
+      } else {
+        console.log('"AXIOS ERROR MESSAGE>>>>",', error.message);
+      }
+      console.log("AXIOS ERROR CONFIG>>>>",error.config);
+    });
+    if(Number(res.status) < 400){
+      const resData = res.data
+        console.log("THIS IS THE ELSE DATA", resData);
+
+      return {
+        status: resData?.status,
+        code: resData?.code,
+        message: resData?.message,
+        data: resData?.data
+      }
+      }else {
+        console.log("THIS IS THE ELSE OR ERROR", res);
+        return {
+          status: res?.status,
+          code: res?.code,
+          message: res?.message
+        }
+      }
+  } catch (error) {
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error.toString()
+    }
+  }
+  
 }
