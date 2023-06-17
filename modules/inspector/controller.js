@@ -21,6 +21,7 @@ const {
   forgotPassword,
   resetPassword,
   viewADriver,
+  updateProfilePicture,
   
 } = require("./service");
 
@@ -83,6 +84,32 @@ exports.viewInspectorProfileController = async (req, res) => {
       user: req.user
     }
     const {status, code, message, data} = await viewProfile(payload);
+    return responseObject(
+      res,
+      code,
+      status,
+      data,
+      message
+    );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.updateProfilePictureController = async (req, res) => {
+  try {
+    const payload = {
+      inspector: req.user,
+      picture: req.file
+    }
+    const {status, code, message, data} = await updateProfilePicture(payload);
     return responseObject(
       res,
       code,
