@@ -80,10 +80,17 @@ exports.fetchInspectorByIdController = async (req, res, next) => {
 
 exports.getAllInspectorsController = async (req, res, next) => {
   try {
+    const inspectorStatus = req.query?.status?(req.query?.status === "active")?true:(req.query.status === "pending")?false:undefined:undefined
     const payload = {
       limit: req.query.limit,
-      page: req.query.page
+      page: req.query.page,
+      filters: {
+        ...((inspectorStatus !== null && inspectorStatus!== "" && inspectorStatus !== undefined) && {regCompleted: inspectorStatus}),
+        ...((req.query?.search && req.query?.search !== null &&  req.query?.search !== "" &&  req.query?.search  !== undefined) && {$or: [{first_name: {$regex:  req.query?.search , $options: "i"}}, {last_name: {$regex:  req.query?.search , $options: "i"}}]}),
+      },
+      order: req.query?.order 
     }
+    console.log("🚀 ~ file: controller.js:91 ~ exports.getAllInspectorsController= ~ payload:", payload)
 
     const {status, code, message, data} = await getAllInspectorsService(payload);
 

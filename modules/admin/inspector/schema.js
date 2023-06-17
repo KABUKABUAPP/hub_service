@@ -6,9 +6,11 @@ exports.modelIdSchema = Joi.object().keys({
 })
 
 exports.paginateSchema = Joi.object().keys({
-  limit: Joi.number().optional(),
-  page: Joi.number().optional(),
-
+  page: Joi.number().positive().optional(),
+  limit: Joi.number().positive().optional(),
+  search: Joi.string().allow(null).allow('').optional(),
+  order: Joi.string().valid("oldest_first", "newest_first", "a-z", "z-a").allow(null).allow('').optional(),
+  status: Joi.string().valid("active", "pending",).allow(null).allow('').optional(),
 })
 
 exports.addNewInspectorSchema = Joi.object().keys({
