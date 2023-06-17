@@ -6,10 +6,14 @@ exports.modelIdSchema = Joi.object().keys({
 })
 
 exports.paginateSchema = Joi.object().keys({
-  limit: Joi.number().optional(),
-  page: Joi.number().optional(),
-
+  page: Joi.number().positive().optional(),
+  limit: Joi.number().positive().optional(),
+  search: Joi.string().allow(null).allow('').optional(),
+  order: Joi.string().valid("oldest_first", "newest_first", "a-z", "z-a").allow(null).allow('').optional(),
+  status: Joi.string().valid("active", "pending",).allow(null).allow('').optional(),
 })
+
+
 exports.addNewInspectorSchema = Joi.object().keys({
   first_name: Joi.string().required(),
   last_name: Joi.string().required(),
@@ -30,3 +34,11 @@ exports.userloginSchema = Joi.object().keys({
   email: Joi.string().email().trim().required(),
   password: Joi.string().required(),
 });
+
+exports.viewInspectedCarsSchema = Joi.object().keys({
+  limit: Joi.number().positive().required(),
+  page: Joi.number().positive().required(),
+  status: Joi.string().valid("approved", "declined").required(),
+  search: Joi.string().allow(null).allow("").optional(),
+
+})
