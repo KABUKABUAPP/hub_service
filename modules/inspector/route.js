@@ -16,7 +16,8 @@ const {
   updatePasswordController,
   forgotPasswordController,
   resetPasswordController,
-  viewADriverController
+  viewADriverController,
+  updateProfilePictureController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
 const { 
@@ -32,6 +33,7 @@ const {
   forgotPasswordSchema,
   resetPasswordSchema
  } = require("./schema");
+const { multerUpload } = require("../../config");
 
 const router = Router();
 
@@ -53,6 +55,14 @@ router.get(
   "/view-profile",
   isAuthorized,
   viewInspectorProfileController
+);
+
+router.put(
+  "/update-profile-image",
+  isAuthorized,
+  multerUpload.single('profile_image'),
+  updateProfilePictureController
+  
 );
 
 router.put(

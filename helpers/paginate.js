@@ -7,6 +7,9 @@ exports.getPaginatedRecords = async (
     selectedFields,
     sortFilter = [["created_at", -1]],
     populate,
+    populateObj,
+    populateObj1,
+    populateObj2,
   }
 ) => {
   try {
@@ -16,7 +19,12 @@ exports.getPaginatedRecords = async (
     const modelData = await model.find({ ...data }).countDocuments();
 
     const result = await model
-      .find({ ...data }).populate(populate? populate : "")
+      .find({ ...data })
+      .populate(populate? populate : "")
+      .populate(populateObj?populateObj:"")
+      .populate(populateObj?populateObj:"")
+      .populate(populateObj1?populateObj1:"")
+      .populate(populateObj2?populateObj2:"")
       .select(selectedFields ? selectedFields : "")
       .skip(offset)
       .limit(limit)

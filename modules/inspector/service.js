@@ -9,7 +9,8 @@ const {
   axiosRequestFunction,
   verificationCode,
   jwtForOtp,
-  formatPhoneNumber
+  formatPhoneNumber,
+  imageUploader
 } = require("../../helpers");
 const {
   HTTP_OK,
@@ -180,6 +181,36 @@ exports.viewProfile = async (payload) => {
     };
   }
 };
+
+exports.updateProfilePicture = async (payload) => {
+  try {
+    const  {
+      inspector,
+      picture
+    } = payload
+    const imgUrl = picture? await imageUploader(picture?.path):undefined
+    const updatedInspector = await Inspector.findByIdAndUpdate(inspector?._id, {
+      profile_image: imgUrl
+    }, {new: true})
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: 'Inspector Profile Image Updated Successfully',
+      data: updatedInspector
+    }
+
+  } catch (error) {
+     console.log(error);
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error?.message,
+      data: error
+    };
+  }
+};
+
 
 exports.updatePassword = async (payload) => {
   try {

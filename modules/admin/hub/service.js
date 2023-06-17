@@ -3,6 +3,7 @@ const {
   authorFewPopulate,
   getVibersIds,
   imageUploader,
+  axiosRequestFunction,
 } = require("../../../helpers");
 const {
   HTTP_OK,
@@ -29,6 +30,7 @@ const {
   getPaginatedRecords
 } = require('../../../helpers/paginate');
 const { inspectorsHubsCars } = require("../../inspector/service");
+const config_env = require("../../../config_env");
 //const { sendQueue } = require('../queues/index');
 
 exports.addNewHubService = async (payload) => {
@@ -140,12 +142,23 @@ exports.getAllHubsService = async (payload) => {
   try {
     const {
       limit,
-      page
+      page,
+      search,
+      order
     } = payload
+    const sort = order?
+    (order === "newest_first")?["created_at", -1]:(order === "oldest_first")?["created_at", 1]
+      :(order === "a-z")?["name", 1]:["name", -1]:["created_at", -1]
     const hubs = await getPaginatedRecords(Hub, {
       limit: limit?Number(limit):10,
       page: page?Number(page):1,
-      populate: "inspector"
+      data: search,
+      populateObj: {
+        path: "inspector",
+        select: 'first_name last_name'
+      },
+      selectedFields: "_id name address city state country inspector cars_processed created_at",
+      sortFilter: [sort]
     })
 
     return {
@@ -191,6 +204,36 @@ exports.fetchHubByLocationService = async (payload) => {
       message: "hub fetched successfully",
       data: foundHub,
     };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+};
+
+exports.viewInspectedCars = async (payload) => {
+  try {
+    const {
+      hub_id,
+      status,
+      search,
+      limit,
+      page
+    } = payload
+    console.log(payload)
+    const axiosReq = await axiosRequestFunction({
+      method: "get",
+      url: config_env.RIDE_SERVICE_BASE_URL + `/car/view-inspected-cars/hub/${hub_id}`,
+      params: {
+        limit, page, status, search
+      }
+    })
+    return axiosReq
+
   } catch (error) {
     console.log(error);
     return {

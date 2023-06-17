@@ -142,12 +142,24 @@ exports.getAllInspectorsService = async (payload) => {
   try {
     const {
       limit,
-      page
+      page,
+      filters,
+      order
     } = payload
+    const sort = order?
+    (order === "newest_first")?["created_at", -1]:(order === "oldest_first")?["created_at", 1]
+      :(order === "a-z")?["first_name", 1]:["first_name", -1]:["created_at", -1]
+
     const records = await getPaginatedRecords(Inspector, {
       limit: limit?Number(limit):10,
       page: page?Number(page):1,
-      data: {regCompleted: true}
+      data: filters,
+      selectedFields: "first_name last_name profile_image assigned_hub state country regCompleted",
+      populateObj: {
+        path: "assigned_hub",
+        select: "name"
+      },
+      sortFilter:[sort]
     })
     let inspectors = records.data
 
@@ -156,8 +168,8 @@ exports.getAllInspectorsService = async (payload) => {
           let obj = {...an_inspector}
           const inspectionData = await inspectorsHubsCars({inspector_id: an_inspector?._id})
           obj._doc.cars_processed = inspectionData.data.cars_processed_by_inspector
-          obj._doc.cars_approved = inspectionData.data.cars_approved_by_inspector
-          obj._doc.cars_declined = inspectionData.data.cars_declined_by_inspector
+          // obj._doc.cars_approved = inspectionData.data.cars_approved_by_inspector
+          // obj._doc.cars_declined = inspectionData.data.cars_declined_by_inspector
           return obj._doc
         })
       )
@@ -192,7 +204,7 @@ exports.viewInspectedCars = async (payload) => {
     console.log(payload)
     const axiosReq = await axiosRequestFunction({
       method: "get",
-      url: config_env.RIDE_SERVICE_BASE_URL + `/car/view-inspected-cars/${inspector_id}`,
+      url: config_env.RIDE_SERVICE_BASE_URL + `/car/view-inspected-cars/inspector/${inspector_id}`,
       params: {
         limit, page, status, search
       }
