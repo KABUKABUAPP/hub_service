@@ -31,6 +31,7 @@ const {
 } = require('../../../helpers/paginate');
 const { inspectorsHubsCars } = require("../../inspector/service");
 const config_env = require("../../../config_env");
+const { default: mongoose } = require("mongoose");
 //const { sendQueue } = require('../queues/index');
 
 exports.addNewHubService = async (payload) => {
@@ -244,3 +245,46 @@ exports.viewInspectedCars = async (payload) => {
     };
   }
 };
+
+exports.removeHub = async (payload) => {
+  try {
+    const {
+      hub_id
+    } = payload
+    
+    const hub = await Hub.findOne({
+      _id: mongoose.Types.ObjectId(hub_id),
+      deleted: false,
+    })
+    if(!hub){
+      return {
+        status: "error",
+        code: HTTP_BAD_REQUEST,
+        message: "Hub Not Found"
+      }
+    }
+
+    
+    const deleted = await Hub.findByIdAndUpdate(hub_id, {
+      name: hub?.name + " DELETED",
+      deleted: true
+    }, {new: true})
+    
+    return  {
+      status: "success",
+      code: HTTP_OK,
+      message: "Hub Deleted Successfully",
+      
+    }
+
+    
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+}

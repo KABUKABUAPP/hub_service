@@ -11,7 +11,8 @@ const {
   fetchHubByIdService,
   getAllHubsService,
   fetchHubByLocationService,
-  viewInspectedCars
+  viewInspectedCars,
+  removeHub
 } = require("./service");
 
 exports.addNewHubController = async (req, res, next) => {
@@ -170,6 +171,36 @@ exports.viewInspectedCarsController = async (req, res, next) => {
     }
 
     const {status, code, message, data} = await viewInspectedCars(payload);
+
+    return next (
+      responseObject(
+        res,
+        code,
+        status,
+        data,
+        message
+      )
+    );
+  } catch (error) {
+    console.log(error);
+    return next(
+      responseObject(
+        res,
+        HTTP_SERVER_ERROR,
+        "error",
+        null,
+        error.toString()
+      )
+    )
+  }
+};
+
+exports.removeHubController = async (req, res, next) => {
+  try {
+
+    const {status, code, message, data} = await removeHub({
+     hub_id: req.params.id
+    });
 
     return next (
       responseObject(
