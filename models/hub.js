@@ -15,6 +15,7 @@ const schema = mongoose.Schema(
     cars_processed: {type: Number, default: 0},
     cars_approved: {type: Number, default: 0},
     cars_declined: {type: Number, default: 0},
+    deleted: {type: Boolean, default: false}
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

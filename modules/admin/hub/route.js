@@ -6,7 +6,8 @@ const {
   addNewHubController,
   fetchHubByIdController,
   getAllHubsController,
-  viewInspectedCarsController
+  viewInspectedCarsController,
+  removeHubController
  } = require("./controller");
 const validateRequest = require("../../../middlewares/validateRequest");
 const { 
@@ -53,6 +54,13 @@ router.get(
   validateRequest(modelIdSchema, 'params'),
   validateRequest(viewInspectedCarsSchema, 'query'),
   viewInspectedCarsController
+);
+
+router.put(
+  "/delete-one/:id",
+  authorizeAdmin("All"),
+  validateRequest(modelIdSchema, 'params'),
+  removeHubController
 );
 
 
