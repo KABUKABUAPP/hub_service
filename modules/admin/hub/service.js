@@ -46,8 +46,9 @@ exports.addNewHubService = async (payload) => {
     } = payload
     const existinghub = await Hub.findOne({
       $or: [
-      {name: name}
-      ]
+      {name: {$regex:name, $options:"i"}}
+      ],
+      deleted: false
     })
     if(existinghub){
       return{
@@ -94,7 +95,7 @@ exports.addNewHubService = async (payload) => {
 
 exports.fetchHubByIdService = async (id) => {
   try {
-    const hub = await Hub.findById(id)
+    const hub = await Hub.findOne({_id: mongoose.Types.ObjectId(id), deleted: false})
     .populate({
       path: "inspector",
       select:{
@@ -153,7 +154,7 @@ exports.getAllHubsService = async (payload) => {
     const hubs = await getPaginatedRecords(Hub, {
       limit: limit?Number(limit):10,
       page: page?Number(page):1,
-      data: search,
+      data: {...search, deleted: false},
       populateObj: {
         path: "inspector",
         select: 'first_name last_name'
@@ -186,8 +187,8 @@ exports.fetchHubByLocationService = async (payload) => {
       city, state
     } = payload
     let foundHub
-    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }})
-    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }})
+    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }, deleted: false})
+    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }, deleted: false})
     foundHub = cityHub?cityHub:stateHub
     .populate("inspector");
     if(!foundHub){
