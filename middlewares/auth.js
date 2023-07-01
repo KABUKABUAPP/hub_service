@@ -175,7 +175,7 @@ exports.isAuthorized = async (req, _res, next) => {
 // //   }
 // // };
 
-exports.authorizeAdmin = (role) => {
+exports.authorizeAdmin = (permission, readWrite) => {
   return async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
@@ -184,31 +184,25 @@ exports.authorizeAdmin = (role) => {
         //   validate
         const getAdmin = await axiosRequestFunction({
           url: config_env.RIDE_SERVICE_BASE_URL+`/admin/auth/validate/${token}`,
-          method: "get"
+          method: "get",
+          params:{
+            permission: permission,
+            read_write: readWrite,
+          }
         })
-        if(getAdmin.status === "error"){
-          return getAdmin
-        }
-        const admin = getAdmin.data
-        console.log("THIS IS THE ADMIN DATA>>>>>>>>>>", admin)
-        const adminEmail = admin?.email
-        const adminId = admin?._id
-        if (
-          String(admin.role) === String(role) ||
-          String(role) === "All"
-        ) {
+        if(getAdmin?.status === "success"){
+          const admin = getAdmin.data
+          console.log("THIS IS THE ADMIN DATA>>>>>>>>>>", admin)
+          const adminEmail = admin?.email
+          const adminId = admin?._id
           req.token = token;
           req.userId = adminId
           req.admin = adminEmail
-          next();
+          return next();
         } else {
-          const data = {
-            code: 401,
-            status: "error",
-            message: "Unauthorized",
-          };
-          return res.status(401).json(data);
+          return res.status(401).json(getAdmin);
         }
+
       } catch (error) {
         const data = {
           code: 401,
