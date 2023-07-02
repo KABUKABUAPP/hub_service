@@ -27,3 +27,23 @@ exports.TripMatchStatus = {
   REJECTED: "rejected",
   ACCEPTED: "accepted",
 };
+
+exports.adminPermissions = {
+  DASHBOARD: "DASHBOARD",
+  TRIPS: "TRIPS",
+  SUPPORT: "SUPPORT",
+  TRANSACTIONS: "TRANSACTIONS",
+  RIDERS: "RIDERS",
+  DRIVERS: "DRIVERS",
+  INSPECTORS: "INSPECTORS",
+  PRICES: "PRICES",
+  HUBS: "HUBS",
+  STAFFS: "STAFFS",
+  SETTINGS: "SETTINGS",
+}
+
+exports.readWrtie ={
+  READ: "READ",
+  WRITE: "WRITE",
+}
+

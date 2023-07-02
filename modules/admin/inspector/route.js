@@ -15,12 +15,13 @@ const {
   paginateSchema,
   viewInspectedCarsSchema
 } = require("./schema");
+const { adminPermissions, readWrtie } = require("../../../helpers/constants");
 
 const router = Router();
 
 router.post(
   "/add-new",
-  authorizeAdmin("All"), 
+  authorizeAdmin(adminPermissions.INSPECTORS, readWrtie.WRITE), 
   validateRequest(addNewInspectorSchema, 'body'),
   addNewInspectorController
 );
@@ -28,21 +29,21 @@ router.post(
 
 router.get(
   "/get-one/:id",
-  authorizeAdmin("All"), 
+  authorizeAdmin(adminPermissions.INSPECTORS, readWrtie.READ), 
   validateRequest(modelIdSchema, 'params'),
   fetchInspectorByIdController
 );
 
 router.get(
   "/all",
-  authorizeAdmin("All"), 
+  authorizeAdmin(adminPermissions.INSPECTORS, readWrtie.READ), 
   validateRequest(paginateSchema, 'query'),
   getAllInspectorsController
 );
 
 router.get(
   "/view-inspected-cars/:id",
-  authorizeAdmin("All"),
+  authorizeAdmin(adminPermissions.INSPECTORS, readWrtie.READ), 
   validateRequest(modelIdSchema, 'params'),
   validateRequest(viewInspectedCarsSchema, 'query'),
   viewInspectedCarsController

@@ -58,50 +58,6 @@ exports.updateHubInspections = async (payload) => {
   }
 };
 
-exports.fetchUserByIdService = async (userId) => {
-  try {
-    const user = await User.findById(userId);
-
-    return {
-      status: "success",
-      code: HTTP_OK,
-      message: "user fetched successfully",
-      data: user,
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      status: "error",
-      message: error?.message,
-      data: error.toString(),
-      code: HTTP_SERVER_ERROR,
-    };
-  }
-};
-
-
-exports.updateUser = async (payload) => {
-  try {
-    const {id, data} = payload
-    await User.findByIdAndUpdate(id, {...data});
-    const updatedUser = await User.findById(id)
-    return {
-      status: "success",
-      code: HTTP_OK,
-      message: "user updated successfully",
-      data: updatedUser,
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      status: "error",
-      message: error?.message,
-      data: error.toString(),
-      code: HTTP_SERVER_ERROR,
-    };
-  }
-};
-
 
 exports.fetchHubByLocationService = async (payload) => {
   try {
@@ -109,8 +65,8 @@ exports.fetchHubByLocationService = async (payload) => {
       city, state
     } = payload
     let foundHub
-    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }})
-    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }})
+    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }, deleted: false})
+    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }, deleted: false})
     foundHub = cityHub?cityHub:stateHub
     if(!foundHub){
       return {

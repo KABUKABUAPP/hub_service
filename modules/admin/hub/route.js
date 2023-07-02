@@ -6,7 +6,8 @@ const {
   addNewHubController,
   fetchHubByIdController,
   getAllHubsController,
-  viewInspectedCarsController
+  viewInspectedCarsController,
+  removeHubController
  } = require("./controller");
 const validateRequest = require("../../../middlewares/validateRequest");
 const { 
@@ -15,12 +16,13 @@ const {
   paginateSchema,
   viewInspectedCarsSchema
 } = require("./schema");
+const { adminPermissions, readWrtie } = require("../../../helpers/constants");
 
 const router = Router();
 
 router.post(
   "/add-new",
-  authorizeAdmin("All"),
+  authorizeAdmin(adminPermissions.HUBS, readWrtie.WRITE),
   multerUpload.array('hub_images'),
   addNewHubController
 );
@@ -28,31 +30,38 @@ router.post(
 
 router.get(
   "/get-one/:id",
-  authorizeAdmin("All"),
+  authorizeAdmin(adminPermissions.HUBS, readWrtie.READ),
   validateRequest(modelIdSchema, 'params'),
   fetchHubByIdController
 );
 
 router.get(
   "/all",
-  authorizeAdmin("All"),
+  authorizeAdmin(adminPermissions.HUBS, readWrtie.READ),
   validateRequest(paginateSchema, 'query'),
   getAllHubsController
 );
 
 router.get(
   "/all",
-  authorizeAdmin("All"),
+  authorizeAdmin(adminPermissions.HUBS, readWrtie.READ),
   validateRequest(paginateSchema, 'query'),
   getAllHubsController
 );
 
 router.get(
   "/view-inspected-cars/:id",
-  authorizeAdmin("All"),
+  authorizeAdmin(adminPermissions.HUBS, readWrtie.READ),
   validateRequest(modelIdSchema, 'params'),
   validateRequest(viewInspectedCarsSchema, 'query'),
   viewInspectedCarsController
+);
+
+router.put(
+  "/delete-one/:id",
+  authorizeAdmin(adminPermissions.HUBS, readWrtie.WRITE),
+  validateRequest(modelIdSchema, 'params'),
+  removeHubController
 );
 
 

@@ -31,6 +31,7 @@ const {
 } = require('../../../helpers/paginate');
 const { inspectorsHubsCars } = require("../../inspector/service");
 const config_env = require("../../../config_env");
+const { default: mongoose } = require("mongoose");
 //const { sendQueue } = require('../queues/index');
 
 exports.addNewHubService = async (payload) => {
@@ -45,8 +46,9 @@ exports.addNewHubService = async (payload) => {
     } = payload
     const existinghub = await Hub.findOne({
       $or: [
-      {name: name}
-      ]
+      {name: {$regex:name, $options:"i"}}
+      ],
+      deleted: false
     })
     if(existinghub){
       return{
@@ -93,7 +95,7 @@ exports.addNewHubService = async (payload) => {
 
 exports.fetchHubByIdService = async (id) => {
   try {
-    const hub = await Hub.findById(id)
+    const hub = await Hub.findOne({_id: mongoose.Types.ObjectId(id), deleted: false})
     .populate({
       path: "inspector",
       select:{
@@ -152,7 +154,7 @@ exports.getAllHubsService = async (payload) => {
     const hubs = await getPaginatedRecords(Hub, {
       limit: limit?Number(limit):10,
       page: page?Number(page):1,
-      data: search,
+      data: {...search, deleted: false},
       populateObj: {
         path: "inspector",
         select: 'first_name last_name'
@@ -185,8 +187,8 @@ exports.fetchHubByLocationService = async (payload) => {
       city, state
     } = payload
     let foundHub
-    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }})
-    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }})
+    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }, deleted: false})
+    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }, deleted: false})
     foundHub = cityHub?cityHub:stateHub
     .populate("inspector");
     if(!foundHub){
@@ -244,3 +246,46 @@ exports.viewInspectedCars = async (payload) => {
     };
   }
 };
+
+exports.removeHub = async (payload) => {
+  try {
+    const {
+      hub_id
+    } = payload
+    
+    const hub = await Hub.findOne({
+      _id: mongoose.Types.ObjectId(hub_id),
+      deleted: false,
+    })
+    if(!hub){
+      return {
+        status: "error",
+        code: HTTP_BAD_REQUEST,
+        message: "Hub Not Found"
+      }
+    }
+
+    
+    const deleted = await Hub.findByIdAndUpdate(hub_id, {
+      name: hub?.name + " DELETED",
+      deleted: true
+    }, {new: true})
+    
+    return  {
+      status: "success",
+      code: HTTP_OK,
+      message: "Hub Deleted Successfully",
+      
+    }
+
+    
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+}
