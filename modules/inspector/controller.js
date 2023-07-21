@@ -22,6 +22,7 @@ const {
   resetPassword,
   viewADriver,
   updateProfilePicture,
+  validateToken,
   
 } = require("./service");
 
@@ -384,6 +385,25 @@ exports.viewADriverController = async (req, res) => {
       data,
       message
     );
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.validateTokenController = async (req, res, next) => {
+  try {
+    const payload = {
+      token: req.params.token
+    }
+    const {status, code, message, data} = await validateToken(payload)
+    return responseObject(res, code, status, data, message);
   } catch (error) {
     console.log(error);
     return responseObject(

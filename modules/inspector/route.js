@@ -17,7 +17,8 @@ const {
   forgotPasswordController,
   resetPasswordController,
   viewADriverController,
-  updateProfilePictureController
+  updateProfilePictureController,
+  validateTokenController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
 const { 
@@ -31,7 +32,8 @@ const {
   paginateSchema,
   updatePasswordSchema,
   forgotPasswordSchema,
-  resetPasswordSchema
+  resetPasswordSchema,
+  validateTokenSchema
  } = require("./schema");
 const { multerUpload } = require("../../config");
 
@@ -133,6 +135,12 @@ router.get(
   isAuthorized, 
   validateRequest(modelIdSchema, "params"),
   viewADriverController
+);
+
+router.get(
+  "/validate/:token",
+  validateRequest(validateTokenSchema, 'params'),
+  validateTokenController,
 );
 
 module.exports = router;
