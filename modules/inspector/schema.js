@@ -70,3 +70,8 @@ exports.resetPasswordSchema = Joi.object().keys({
   new_password: Joi.string().required(),
   otp: Joi.number().required(),
 });
+
+exports.validateTokenSchema = Joi.object().keys({
+  token: Joi.string().required()
+
+})

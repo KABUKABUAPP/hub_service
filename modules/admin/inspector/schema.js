@@ -41,3 +41,8 @@ exports.viewInspectedCarsSchema = Joi.object().keys({
   search: Joi.string().allow(null).allow("").optional(),
 
 })
+
+exports.validateTokenSchema = Joi.object().keys({
+  token: Joi.string().required()
+
+})
