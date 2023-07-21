@@ -13,9 +13,11 @@ const {
   addNewInspectorSchema,
   modelIdSchema,
   paginateSchema,
-  viewInspectedCarsSchema
+  viewInspectedCarsSchema,
+  validateTokenSchema
 } = require("./schema");
 const { adminPermissions, readWrtie } = require("../../../helpers/constants");
+const { validateTokenController } = require("../../inspector/controller");
 
 const router = Router();
 
@@ -48,5 +50,7 @@ router.get(
   validateRequest(viewInspectedCarsSchema, 'query'),
   viewInspectedCarsController
 );
+
+
 
 module.exports = router;
