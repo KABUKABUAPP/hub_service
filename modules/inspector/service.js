@@ -10,13 +10,15 @@ const {
   verificationCode,
   jwtForOtp,
   formatPhoneNumber,
-  imageUploader
+  imageUploader,
+  verifyJwt
 } = require("../../helpers");
 const {
   HTTP_OK,
   HTTP_SERVER_ERROR,
   HTTP_NOT_FOUND,
   HTTP_BAD_REQUEST,
+  HTTP_UNAUTHORIZED,
 } = require("../../helpers/httpCodes");
 const {
   Inspector,
@@ -743,6 +745,38 @@ exports.inspectorsHubsCars = async({inspector_id, hub_id}) => {
       data
     }
 
+    
+  } catch (error) {
+     console.log(error);
+    return {
+      status:"error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message
+    };
+  }
+} 
+
+exports.validateToken = async(payload) => {
+  try {
+    const {
+      token
+    } = payload
+    const {id} = verifyJwt(token)
+    const inspector = id? await Inspector.findById(id): undefined
+    if(inspector){
+      return {
+          status: "success",
+          code: HTTP_OK,
+          message: `inspector Retreived successfully`,
+          data: inspector
+        };
+    } else {
+       return {
+        status: "error",
+        code: HTTP_UNAUTHORIZED,
+        message: 'Unathourized Access'
+      }
+    }
     
   } catch (error) {
      console.log(error);
