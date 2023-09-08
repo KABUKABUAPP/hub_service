@@ -228,7 +228,7 @@ exports.authorizeInspectorLogin = async (req, _res, next) => {
     const emailOrNumber = String(req.body.phone_number).includes("@")? req.body.phone_number:formatPhoneNumber(req.body.phone_number)
     const existingInspector = String(emailOrNumber).includes('@')?
     await Inspector.findOne({
-      email: {$regex: emailOrNumber, $options: "i"}
+      email: String(emailOrNumber).toLowerCase()
     }): await Inspector.findOne({
       phone_number: emailOrNumber
     })
@@ -236,7 +236,7 @@ exports.authorizeInspectorLogin = async (req, _res, next) => {
      if (!existingInspector) {
       const respo = {
         status: "error",
-        code: HTTP_NOT_FOUND,
+        code: HTTP_BAD_REQUEST,
         message: "Account Not Found",
       }
       return next( 
