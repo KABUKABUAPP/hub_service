@@ -5,10 +5,11 @@ const { authTest } = require("../../middlewares/auth");
 const { 
   fetchUser, 
   fetchUserById, 
-  fetchHubsByLocationController 
+  fetchHubsByLocationController, 
+  fetchAssignedHubDetailsController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
-const { fetchHubByLocationSchema } = require("./schema");
+const { fetchHubByLocationSchema, modelIdSchema } = require("./schema");
 
 const router = Router();
 
@@ -18,6 +19,12 @@ router.get(
   "/fetch",
   validateRequest(fetchHubByLocationSchema, "query"),
   fetchHubsByLocationController
+);
+
+router.get(
+  "/assigned/:id",
+  validateRequest(modelIdSchema, "params"),
+  fetchAssignedHubDetailsController
 );
 
 module.exports = router;
