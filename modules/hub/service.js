@@ -18,7 +18,7 @@ const {
   deleteRedisData,
   deleteRedisMany,
 } = require("../../helpers/cache");
-const { Hub, InspectionDetails } = require("../../models");
+const { Hub, InspectionDetails, Inspector } = require("../../models");
 //const { sendQueue } = require('../queues/index');
 
 exports.updateHubInspections = async (payload) => {
@@ -83,6 +83,42 @@ exports.fetchHubByLocationService = async (payload) => {
       code: HTTP_OK,
       message: "hub fetched successfully",
       data: foundHub,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+};
+
+exports.fetchAssignedHubDetails = async (id) => {
+  try {
+    const availableInspector =  await Inspector.findOne({
+      assigned_hub:id
+    }).populate({
+      path: "assigned_hub",
+      select: 'name address city state'
+    })
+    const hubDetails = {
+      first_name : availableInspector?.first_name || "", 
+      last_name : availableInspector?.last_name || "", 
+      phone_number : availableInspector?.phone_number || "", 
+      address : availableInspector?.assigned_hub?.address || "", 
+      city : availableInspector?.assigned_hub?.city || "", 
+      state : availableInspector?.assigned_hub?.state || "", 
+    }
+
+    
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: "hub Details  fetched successfully",
+      data: hubDetails,
     };
   } catch (error) {
     console.log(error);
