@@ -225,12 +225,18 @@ exports.authorizeAdmin = (permission, readWrite) => {
 
 exports.authorizeInspectorLogin = async (req, _res, next) => {
   try {
-    const emailOrNumber = String(req.body.phone_number).includes("@")? req.body.phone_number:formatPhoneNumber(req.body.phone_number)
-    const existingInspector = String(emailOrNumber).includes('@')?
-    await Inspector.findOne({
-      email: String(emailOrNumber).toLowerCase()
-    }): await Inspector.findOne({
-      phone_number: emailOrNumber
+    const emailOrNumber = String(req.body.phone_number)
+    const existingInspector = await Inspector.findOne({
+      $and:[
+        {deleted: false},
+        {
+          $or: [
+            {email: emailOrNumber.toLowerCase()},
+            {phone_number: formatPhoneNumber(emailOrNumber)},
+            {username: emailOrNumber.toLowerCase()},
+          ]
+        }
+      ]
     })
 
      if (!existingInspector) {

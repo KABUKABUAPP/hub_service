@@ -16,13 +16,15 @@ const {
 exports.addNewInspectorController = async (req, res, next) => {
   try {
     const payload = {
-      first_name: String(req.body.first_name).toLowerCase(),
-      last_name: String(req.body.last_name).toLowerCase(),
-      house_address: String(req.body.house_address).toLowerCase(),
-      phone_number: formatPhoneNumber(String(req.body.phone_number).toLowerCase()),
-      city: String(req.body.city).toLowerCase(),
-      state: String(req.body.state).toLowerCase(),
-      email: String(req.body.email).toLowerCase()
+      first_name: req.body?.first_name? String(req.body?.first_name).toLowerCase(): undefined,
+      last_name:req.body?.last_name? String(req.body?.last_name).toLowerCase(): undefined,
+      house_address: req.body?.house_address?String(req.body?.house_address).toLowerCase(): undefined,
+      phone_number: req.body?.phone_number? formatPhoneNumber(String(req.body?.phone_number).toLowerCase()): undefined,
+      city: req.body?.city?String(req.body?.city).toLowerCase(): undefined,
+      state: req.body?.city? String(req.body?.state).toLowerCase(): undefined,
+      email: req.body?.email? String(req.body?.email).toLowerCase(): undefined,
+      password: req.body?.password,
+      username: String(req.body?.username).toLowerCase()
     }
     const {status, code, message, data} = await addNewInspectorService(payload);
 
@@ -52,8 +54,13 @@ exports.addNewInspectorController = async (req, res, next) => {
 
 exports.fetchInspectorByIdController = async (req, res, next) => {
   try {
+    const payload = {
+      id: req.params.id,
+      limit: req?.query?.limit,
+      page: req?.query?.page
+    }
 
-    const {status, code, message, data} = await fetchInspectorByIdService(req.params.id);
+    const {status, code, message, data} = await fetchInspectorByIdService(payload);
 
     return next (
       responseObject(
