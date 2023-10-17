@@ -14,7 +14,8 @@ const {
 } = require("../../../helpers/httpCodes");
 const {
   Inspector,
-  Hub
+  Hub,
+  InspectionDetails
 } = require("../../../models");
 
 const _ = require("lodash");
@@ -72,7 +73,7 @@ exports.addNewHubService = async (payload) => {
       city,
       state,
       hub_images: images,
-      inspector
+      inspector: inspector?inspector:undefined
     });
 
     return {
@@ -93,7 +94,7 @@ exports.addNewHubService = async (payload) => {
 };
 
 
-exports.fetchHubByIdService = async (id) => {
+exports.fetchHubByIdService = async (id, limit, page) => {
   try {
     const hub = await Hub.findOne({_id: mongoose.Types.ObjectId(id), deleted: false})
     .populate({
@@ -116,17 +117,21 @@ exports.fetchHubByIdService = async (id) => {
       }
     }
 
-    const inspectRecord = await inspectorsHubsCars({hub_id: hub?._id})
+    const inspectRecord = await inspectorsHubsCars({hub_id: hub?._id, limit,page})
     hub.cars_processed = inspectRecord?.data.cars_processed_in_hub
     hub.cars_approved = inspectRecord?.data.cars_approved_in_hub
     hub.cars_declined = inspectRecord?.data.cars_declined_in_hub
     hub.save()
+    
 
     return {
       status: "success",
       code: HTTP_OK,
       message: "hub fetched successfully",
-      data: hub,
+      data: {
+        ...hub._doc,
+        // car_inspection_history: inspectRecord?.data.driver_histories
+      } 
     };
   } catch (error) {
     console.log(error);
@@ -227,14 +232,36 @@ exports.viewInspectedCars = async (payload) => {
       page
     } = payload
     console.log(payload)
-    const axiosReq = await axiosRequestFunction({
-      method: "get",
-      url: config_env.RIDE_SERVICE_BASE_URL + `/car/view-inspected-cars/hub/${hub_id}`,
-      params: {
-        limit, page, status, search
+    const filter = status?{hub: hub_id, status: status}:{hub:hub_id}
+    const driver_ids = await InspectionDetails.find(filter).distinct("driver")
+    const carHistories = await axiosRequestFunction({
+      method: "post",
+      url: config_env.RIDE_SERVICE_BASE_URL + '/admin/car/inspection-history',
+      data: {
+        limit,
+        page,
+        driver_ids,
+        search,
       }
     })
-    return axiosReq
+    let returnData = {}
+    switch (carHistories.status) {
+      case "success":
+        returnData = {
+          status: carHistories.status,
+          code: carHistories.code,
+          message: status + " Inspected Cars Retreived Successfully",
+          data: carHistories?.data
+        }
+      break;
+      case "error":
+        returnData = carHistories
+      break;
+      default:
+      break;
+    }
+
+    return returnData
 
   } catch (error) {
     console.log(error);

@@ -32,6 +32,7 @@ router.get(
   "/get-one/:id",
   authorizeAdmin(adminPermissions.HUBS, readWrtie.READ),
   validateRequest(modelIdSchema, 'params'),
+  validateRequest(paginateSchema, 'query'),
   fetchHubByIdController
 );
 
