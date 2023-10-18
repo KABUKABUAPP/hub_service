@@ -721,7 +721,7 @@ exports.viewADriver = async(payload) => {
     };
   }
 }
-exports.inspectorsHubsCars = async({inspector_id, hub_id}) => {
+exports.inspectorsHubsCars = async({inspector_id, hub_id, limit, page}) => {
   try {
     const cars_processed_by_inspector = await InspectionDetails.find({inspector: inspector_id}).countDocuments()
     const cars_approved_by_inspector = await InspectionDetails.find({inspector: inspector_id, status: "approved"}).countDocuments()
@@ -729,6 +729,21 @@ exports.inspectorsHubsCars = async({inspector_id, hub_id}) => {
     const cars_processed_in_hub = await InspectionDetails.find({hub: hub_id}).countDocuments()
     const cars_approved_in_hub = await InspectionDetails.find({hub: hub_id, status: "approved"}).countDocuments()
     const cars_declined_in_hub  = await InspectionDetails.find({hub: hub_id,  status: "declined"}).countDocuments()
+    // const driver_ids = await InspectionDetails.find({
+    //   $or: [
+    //     {hub: hub_id},
+    //     {inspector: inspector_id}
+    //   ]}
+    // ).distinct("driver")
+    // const carHistories = await axiosRequestFunction({
+    //   method: "post",
+    //   url: config_env.RIDE_SERVICE_BASE_URL + '/admin/car/inspection-history',
+    //   data: {
+    //     limit,
+    //     page,
+    //     driver_ids
+    //   }
+    // })
     const data = {
       cars_processed_by_inspector,
       cars_approved_by_inspector,
@@ -736,6 +751,7 @@ exports.inspectorsHubsCars = async({inspector_id, hub_id}) => {
       cars_processed_in_hub,
       cars_approved_in_hub,
       cars_declined_in_hub,
+      // driver_histories: carHistories.data
     }
 
     return {

@@ -18,11 +18,11 @@ const {
 exports.addNewHubController = async (req, res, next) => {
   try {
     const payload = {
-      name: String(req.body.name).toLowerCase(),
-      address: String(req.body.address).toLowerCase(),
+      name: String(req.body?.name).toLowerCase(),
+      address: String(req.body?.address).toLowerCase(),
       city: String(req.body.city).toLowerCase(),
-      state: String(req.body.state).toLowerCase(),
-      inspector: String(req.body.inspector).toLowerCase(),
+      state: String(req.body?.state).toLowerCase(),
+      inspector: req.body?.inspector? String(req.body?.inspector).toLowerCase(): undefined,
       hub_images: req.files
     }
     const {status, code, message, data} = await addNewHubService(payload);
@@ -53,7 +53,7 @@ exports.addNewHubController = async (req, res, next) => {
 exports.fetchHubByIdController = async (req, res, next) => {
   try {
 
-    const {status, code, message, data} = await fetchHubByIdService(req.params.id);
+    const {status, code, message, data} = await fetchHubByIdService(req.params.id, req?.query?.limit, req?.query?.page);
 
     return next (
       responseObject(

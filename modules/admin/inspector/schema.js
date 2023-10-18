@@ -14,18 +14,21 @@ exports.paginateSchema = Joi.object().keys({
 })
 
 exports.addNewInspectorSchema = Joi.object().keys({
-  first_name: Joi.string().required(),
-  last_name: Joi.string().required(),
+  first_name: Joi.string().optional(),
+  last_name: Joi.string().optional(),
   phone_number: Joi.string()
     .length(11)
     .pattern(/^[0-9]+$/)
     .trim()
     .optional()
     .label("phone_number").optional(),
-  house_address: Joi.string().required(),
-  city: Joi.string().required(),
-  state: Joi.string().required(),
-  email: Joi.string().email().trim().required(),
+  house_address: Joi.string().optional(),
+  city: Joi.string().optional(),
+  state: Joi.string().optional(),
+  email: Joi.string().email().trim().optional(),
+  password: Joi.string().required(),
+  username: Joi.string().required(),
+
 
 });
 

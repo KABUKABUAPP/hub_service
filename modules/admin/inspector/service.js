@@ -17,7 +17,8 @@ const {
 } = require("../../../helpers/httpCodes");
 const {
   Inspector,
-  Hub
+  Hub,
+  InspectionDetails
 } = require("../../../models");
 
 const _ = require("lodash");
@@ -46,7 +47,9 @@ exports.addNewInspectorService = async (payload) => {
       house_address,
       city,
       state,
-      email
+      email,
+      password,
+      username
     } = payload
     const existingInspector = await Inspector.findOne({
       $or: [
@@ -54,6 +57,17 @@ exports.addNewInspectorService = async (payload) => {
         {phone_number: phone_number}
       ]
     })
+
+    const usernameTaken = await Inspector.findOne({
+      username
+    })
+    if(usernameTaken){
+      return {
+        status: "error",
+        code: HTTP_BAD_REQUEST,
+        message: "Username Aready Taken"
+      }
+    }
     if(existingInspector){
       return{
         status: "error",
@@ -63,33 +77,33 @@ exports.addNewInspectorService = async (payload) => {
     }
 
     const randomPassword = generateRandomString(8)
-    const hash = hashPassword(randomPassword)
+    const hash = hashPassword(password)
     const newInspector = await Inspector.create({
       first_name,
       last_name,
-      phone_number: formatPhoneNumber(phone_number),
+      phone_number,
       house_address,
       city,
       state,
       email,
-      password: hash
+      password: hash,
+      regCompleted: true,
+      username
     });
     const mailData = {
       first_name,
       last_name,
       phone_number: formatPhoneNumber(phone_number),
       email,
-      password: randomPassword,
+      password,
+      username,
       queue_type:messaging.NOTIFICATION_MAIL_TO_NEW_INSPECTOR,
     }
     sendQueue(
       messaging.GENERAL_NOTIFICATION_SERVICE_CONSUMER,
       Buffer.from(JSON.stringify(mailData))
     )
-    sendQueue(
-      messaging.NOTIFICATION_MAIL_TO_NEW_INSPECTOR,
-      Buffer.from(JSON.stringify(mailData))
-    )
+    
 
 
     return {
@@ -109,8 +123,13 @@ exports.addNewInspectorService = async (payload) => {
   }
 };
 
-exports.fetchInspectorByIdService = async (id) => {
+exports.fetchInspectorByIdService = async (payload) => {
   try {
+    const {
+      id,
+      limit,
+      page
+    } = payload
     const inspector = await Inspector.findById(id);
     if(!inspector){
       return {
@@ -120,7 +139,7 @@ exports.fetchInspectorByIdService = async (id) => {
       }
     }
 
-    const inspectRecord = await inspectorsHubsCars({inspector_id: inspector?._id})
+    const inspectRecord = await inspectorsHubsCars({inspector_id: inspector?._id, limit, page})
     inspector.cars_processed = inspectRecord?.data.cars_processed_by_inspector
     inspector.cars_approved = inspectRecord?.data.cars_approved_by_inspector
     inspector.cars_declined = inspectRecord?.data.cars_declined_by_inspector
@@ -130,7 +149,10 @@ exports.fetchInspectorByIdService = async (id) => {
       status: "success",
       code: HTTP_OK,
       message: "inspector fetched successfully",
-      data: inspector,
+      data: {
+        ...inspector._doc,
+        // car_inspection_history: inspectRecord.data.driver_histories
+      }
     };
   } catch (error) {
     console.log(error);
@@ -207,15 +229,37 @@ exports.viewInspectedCars = async (payload) => {
       limit,
       page
     } = payload
-    console.log(payload)
-    const axiosReq = await axiosRequestFunction({
-      method: "get",
-      url: config_env.RIDE_SERVICE_BASE_URL + `/car/view-inspected-cars/inspector/${inspector_id}`,
-      params: {
-        limit, page, status, search
+    const filter = status?{inspector: inspector_id, status: status}:{inspector:inspector_id}
+
+    const driver_ids = await InspectionDetails.find(filter).distinct("driver")
+    const carHistories = await axiosRequestFunction({
+      method: "post",
+      url: config_env.RIDE_SERVICE_BASE_URL + '/admin/car/inspection-history',
+      data: {
+        limit,
+        page,
+        driver_ids,
+        search,
       }
     })
-    return axiosReq
+    let returnData = {}
+    switch (carHistories.status) {
+      case "success":
+        returnData = {
+          status: carHistories.status,
+          code: carHistories.code,
+          message: status + " Inspected Cars Retreived Successfully",
+          data: carHistories?.data
+        }
+      break;
+      case "error":
+        returnData = carHistories
+      break;
+      default:
+      break;
+    }
+
+    return returnData
 
   } catch (error) {
     console.log(error);
