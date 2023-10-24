@@ -19,7 +19,7 @@ exports.addNewInspectorController = async (req, res, next) => {
       first_name: req.body?.first_name? String(req.body?.first_name).toLowerCase(): undefined,
       last_name:req.body?.last_name? String(req.body?.last_name).toLowerCase(): undefined,
       house_address: req.body?.house_address?String(req.body?.house_address).toLowerCase(): undefined,
-      phone_number: req.body?.phone_number? formatPhoneNumber(String(req.body?.phone_number).toLowerCase()): undefined,
+      phone_number: (req.body?.phone_number &&(req.body.phone_number !== null ) && (req.body.phone_number !== ""))? formatPhoneNumber(String(req.body?.phone_number).toLowerCase()): undefined,
       city: req.body?.city?String(req.body?.city).toLowerCase(): undefined,
       state: req.body?.city? String(req.body?.state).toLowerCase(): undefined,
       email: req.body?.email? String(req.body?.email).toLowerCase(): undefined,
