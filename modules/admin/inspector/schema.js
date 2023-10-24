@@ -17,11 +17,11 @@ exports.addNewInspectorSchema = Joi.object().keys({
   first_name: Joi.string().optional(),
   last_name: Joi.string().optional(),
   phone_number: Joi.string()
-    .length(11)
+    // .length(11)
     .pattern(/^[0-9]+$/)
     .trim()
     .optional()
-    .label("phone_number").optional(),
+    .label("phone_number").optional().allow(null).allow(""),
   house_address: Joi.string().optional(),
   city: Joi.string().optional(),
   state: Joi.string().optional(),
