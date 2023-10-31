@@ -68,7 +68,13 @@ exports.addNewInspectorService = async (payload) => {
         message: "Username Aready Taken"
       }
     }
-    if(existingInspector){
+    if(
+        (existingInspector) &&  
+        (existingInspector.email !== undefined ) && 
+        (existingInspector.email !== null) && 
+        (existingInspector.phone_number !== undefined) && 
+        (existingInspector.phone_number !== null))
+      {
       return{
         status: "error",
         code: HTTP_BAD_REQUEST,
