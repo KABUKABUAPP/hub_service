@@ -93,7 +93,15 @@ exports.getAllInspectorsController = async (req, res, next) => {
       page: req.query.page,
       filters: {
         ...((inspectorStatus !== null && inspectorStatus!== "" && inspectorStatus !== undefined) && {regCompleted: inspectorStatus}),
-        ...((req.query?.search && req.query?.search !== null &&  req.query?.search !== "" &&  req.query?.search  !== undefined) && {$or: [{first_name: {$regex:  req.query?.search , $options: "i"}}, {last_name: {$regex:  req.query?.search , $options: "i"}}]}),
+        ...((req.query?.search && req.query?.search !== null &&  req.query?.search !== "" &&  req.query?.search  !== undefined) && 
+          {
+            $or: [
+              {first_name: {$regex:  req.query?.search , $options: "i"}},
+              {last_name: {$regex:  req.query?.search , $options: "i"}}, 
+              {username: {$regex:  req.query?.search , $options: "i"}}
+            ]
+          }
+        ),
       },
       order: req.query?.order 
     }
