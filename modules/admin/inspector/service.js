@@ -188,7 +188,7 @@ exports.getAllInspectorsService = async (payload) => {
       limit: limit?Number(limit):10,
       page: page?Number(page):1,
       data: filters,
-      selectedFields: "first_name last_name profile_image assigned_hub state country regCompleted",
+      selectedFields: "first_name last_name username profile_image assigned_hub state country regCompleted",
       populateObj: {
         path: "assigned_hub",
         select: "name"
