@@ -438,7 +438,8 @@ exports.approveDeclineDriverApplication = async (payload) => {
       data: {
         approval_status: approval_status,
         reason: reason,
-        inspector_id: inspector._id
+        inspector_id: inspector._id,
+        assigned_hub_id: inspector?.assigned_hub,
       }
     })
     if(axiosToAuth.status !== "success"){
@@ -682,9 +683,9 @@ exports.fetchAssignedApplications = async(payload) => {
       driver_name
     } = payload
     const pendingApplications = await axiosRequestFunction({
-      url: config_env.RIDE_SERVICE_BASE_URL + `/driver/fetch-assigned-applications/${user?.assigned_hub}`,
+      url: config_env.RIDE_SERVICE_BASE_URL + `/driver/fetch-assigned-applications`,
       method: "get",
-      params: {limit, page, approval_status:approval_status, date: date, driver_name},
+      params: {limit, page, approval_status:approval_status, date: date, driver_name, inspector_id: user._id, assigned_hub_id: user?.assigned_hub},
       headers: {hubid: user._id}
     })
 
