@@ -105,10 +105,10 @@ exports.addNewInspectorService = async (payload) => {
       username,
       queue_type:messaging.NOTIFICATION_MAIL_TO_NEW_INSPECTOR,
     }
-    sendQueue(
-      messaging.GENERAL_NOTIFICATION_SERVICE_CONSUMER,
-      Buffer.from(JSON.stringify(mailData))
-    )
+    // sendQueue(
+    //   messaging.GENERAL_NOTIFICATION_SERVICE_CONSUMER,
+    //   Buffer.from(JSON.stringify(mailData))
+    // )
     
 
 

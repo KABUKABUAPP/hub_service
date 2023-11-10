@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 const schema = mongoose.Schema(
   {
     first_name: { type: String, required: true },
-    last_name: { type: String, required: true },
+    last_name: { type: String },
     profile_image: { type: String, sparse: true },
     phone_number: { type: String },
     email: { type: String },
     password: { type: String },
-    username: { type: String, unique: true },
+    username: { type: String, unique: true, required: true },
     house_address: { type: String, sparse: true, required: true },
     city: { type: String, sparse: true },
     state: { type: String, sparse: true },
