@@ -352,6 +352,7 @@ exports.fetchAssignedApplicationsController = async (req, res) => {
       driver_name: req.query.driver_name,
     }
     const {status, code, message, data} = await fetchAssignedApplications(payload);
+    console.log("🚀 ~ file: controller.js:355 ~ exports.fetchAssignedApplicationsController= ~ payload:", payload)
     return responseObject(
       res,
       code,
