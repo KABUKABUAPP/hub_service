@@ -804,3 +804,60 @@ exports.validateToken = async(payload) => {
     };
   }
 } 
+
+exports.getAssignedSharpCars = async(payload) => {
+  try {
+    const {
+      insepctor,
+      status,
+      limit,
+      page
+    } = payload
+    const axiosResponse = await axiosRequestFunction({
+      method: "get",
+      url: `${config_env.RIDE_SERVICE_BASE_URL}/car/get-sharp-cars-from-hub-service`,
+      params:{
+        status: status,
+        inspector_id: insepctor?.id,
+        hub_id: insepctor?.assigned_hub,
+        limit: limit? limit: "10",
+        page: page ? page : "1" 
+      }
+    })
+    return axiosResponse
+    
+  } catch (error) {
+     console.log(error);
+    return {
+      status:"error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message
+    };
+  }
+} 
+
+exports.markCarsAsDelivered = async(payload) => {
+  try {
+    const {
+      inspector,
+      delivery_id
+    } = payload
+    const axiosResponse = await axiosRequestFunction({
+      method: "put",
+      url: `${config_env.RIDE_SERVICE_BASE_URL}/car/mark-cars-as-delivered/${delivery_id}`,
+      params:{
+        inspector_id: String(inspector?.id), 
+        hub_id: inspector?.assigned_hub, 
+      }
+    })
+    return axiosResponse
+    
+  } catch (error) {
+     console.log(error);
+    return {
+      status:"error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message
+    };
+  }
+} 

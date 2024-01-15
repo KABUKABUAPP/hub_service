@@ -23,6 +23,8 @@ const {
   viewADriver,
   updateProfilePicture,
   validateToken,
+  getAssignedSharpCars,
+  markCarsAsDelivered,
   
 } = require("./service");
 
@@ -404,6 +406,50 @@ exports.validateTokenController = async (req, res, next) => {
       token: req.params.token
     }
     const {status, code, message, data} = await validateToken(payload)
+    return responseObject(res, code, status, data, message);
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+
+exports.getAssignedSharpCarsController = async (req, res, next) => {
+  try {
+    const payload = {
+      inspector: req.user,
+      status: req?.query?.status,
+      limit: req.query.limit,
+      page: req.query.page,
+    }
+    const {status, code, message, data} = await getAssignedSharpCars(payload)
+    return responseObject(res, code, status, data, message);
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.markCarsAsDeliveredController = async (req, res, next) => {
+  try {
+    const payload = {
+      inspector: req.user,
+      delivery_id: req?.params?.id,
+    }
+    console.log("🚀 ~ exports.markCarsAsDeliveredController= ~ payload:", payload)
+    const {status, code, message, data} = await markCarsAsDelivered(payload)
     return responseObject(res, code, status, data, message);
   } catch (error) {
     console.log(error);

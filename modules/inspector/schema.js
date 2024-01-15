@@ -75,3 +75,18 @@ exports.validateTokenSchema = Joi.object().keys({
   token: Joi.string().required()
 
 })
+
+exports.getSharpCarsSchema = Joi.object().keys({
+  status: Joi.string()
+  .valid(
+    "pending", 
+    "delivered", 
+    "active",
+    "all"
+  )
+  .allow(null)
+  .optional(),
+  limit: Joi.number().optional(),
+  page: Joi.number().optional(),
+
+})
