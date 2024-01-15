@@ -18,7 +18,9 @@ const {
   resetPasswordController,
   viewADriverController,
   updateProfilePictureController,
-  validateTokenController
+  validateTokenController,
+  getAssignedSharpCarsController,
+  markCarsAsDeliveredController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
 const { 
@@ -33,7 +35,8 @@ const {
   updatePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  validateTokenSchema
+  validateTokenSchema,
+  getSharpCarsSchema
  } = require("./schema");
 const { multerUpload } = require("../../config");
 
@@ -141,6 +144,20 @@ router.get(
   "/validate/:token",
   validateRequest(validateTokenSchema, 'params'),
   validateTokenController,
+);
+
+router.get(
+  "/get-sharp-cars",
+  isAuthorized,
+  validateRequest(getSharpCarsSchema, 'query'),
+  getAssignedSharpCarsController,
+);
+
+router.put(
+  "/mark-cars-as-delivered-successfully/:id",
+  isAuthorized,
+  validateRequest(modelIdSchema, "params"),
+  markCarsAsDeliveredController,
 );
 
 module.exports = router;
