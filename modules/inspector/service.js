@@ -808,7 +808,7 @@ exports.validateToken = async(payload) => {
 exports.getAssignedSharpCars = async(payload) => {
   try {
     const {
-      insepctor,
+      inspector,
       status,
       limit,
       page
@@ -818,8 +818,8 @@ exports.getAssignedSharpCars = async(payload) => {
       url: `${config_env.RIDE_SERVICE_BASE_URL}/car/get-sharp-cars-from-hub-service`,
       params:{
         status: status,
-        inspector_id: insepctor?.id,
-        hub_id: insepctor?.assigned_hub,
+        inspector_id: String(inspector?._id),
+        hub_id: String(inspector?.assigned_hub),
         limit: limit? limit: "10",
         page: page ? page : "1" 
       }
