@@ -10,7 +10,8 @@ const {
   fetchUserService, 
   fetchUserByIdService,
   fetchHubByLocationService,
-  fetchAssignedHubDetails
+  fetchAssignedHubDetails,
+  fetchHubByIdService
  } = require("./service");
 
 exports.fetchUser = async (req, res) => {
@@ -124,6 +125,33 @@ exports.fetchHubsByLocationController = async (req, res, next) => {
 exports.fetchAssignedHubDetailsController = async (req, res, next) => {
   try {
     const {status, code, message, data} = await fetchAssignedHubDetails(req.params.id);
+
+    return next (
+      responseObject(
+        res,
+        code,
+        status,
+        data,
+        message
+      )
+    );
+  } catch (error) {
+    console.log(error);
+    return next(
+      responseObject(
+        res,
+        HTTP_SERVER_ERROR,
+        "error",
+        null,
+        error.toString()
+      )
+    )
+  }
+};
+
+exports.fetchHubByIdController = async (req, res, next) => {
+  try {
+    const {status, code, message, data} = await fetchHubByIdService(req.params.id);
 
     return next (
       responseObject(

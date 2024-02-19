@@ -130,3 +130,40 @@ exports.fetchAssignedHubDetails = async (id) => {
     };
   }
 };
+
+exports.fetchHubByIdService = async (hub_id) => {
+  try {
+    
+    const foundHub = await Hub.findOne({_id: hub_id, deleted: false})
+    .select(" _id name address city state country hub_images inspector deleted ")
+    if(!foundHub){
+      return {
+        status: "error",
+        code: HTTP_NOT_FOUND,
+        message: 'Hub Not Found',
+      }
+    }
+
+    const inspectors = await Inspector.find({assigned_hub: hub_id})
+    .select("_id first_name last_name phone_number email deleted ")
+
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: "hub fetched successfully",
+      data: {
+        hub_details: foundHub,
+        inspectors: inspectors
+      }
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+};
