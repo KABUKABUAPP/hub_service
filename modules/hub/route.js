@@ -6,7 +6,8 @@ const {
   fetchUser, 
   fetchUserById, 
   fetchHubsByLocationController, 
-  fetchAssignedHubDetailsController
+  fetchAssignedHubDetailsController,
+  fetchHubByIdController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
 const { fetchHubByLocationSchema, modelIdSchema } = require("./schema");
@@ -25,6 +26,12 @@ router.get(
   "/assigned/:id",
   validateRequest(modelIdSchema, "params"),
   fetchAssignedHubDetailsController
+);
+
+router.get(
+  "/fetch-by-id/:id",
+  validateRequest(modelIdSchema, "params"),
+  fetchHubByIdController
 );
 
 module.exports = router;
