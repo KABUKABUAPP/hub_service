@@ -7,7 +7,7 @@ const axios = require('axios')
 // dotenv.config();
 const config = require("../config_env");
 const bcrypt = require("bcryptjs");
-const { HTTP_SERVER_ERROR } = require("./httpCodes");
+const { HTTP_SERVER_ERROR, HTTP_BAD_REQUEST } = require("./httpCodes");
 
 exports.hashPassword = (password) => {
   return bcrypt.hashSync(password, bcrypt.genSaltSync(8));
@@ -276,32 +276,37 @@ exports.axiosRequestFunction = async({method,url,data,params,headers}) =>{
           code: error.response.status,
           message: error.response.data.message,
         }
-      } else if (error.request) {
-        console.log("AXIOS ERROR REQUEST>>>>", error.request);
-      } else {
-        console.log('"AXIOS ERROR MESSAGE>>>>",', error.message);
-      }
-      console.log("AXIOS ERROR CONFIG>>>>",error.config);
+      } 
     });
-    if(Number(res.status) < 400){
-      const resData = res.data
-        console.log("THIS IS THE ELSE DATA", resData);
+    const resData = res?.data ? res.data : res;
 
+    if (
+      Number(resData?.code) < 400 ||
+      resData?.status === "success" ||
+      resData?.statusCode === "00" ||
+      (typeof resData?.status === "boolean" &&
+        Boolean(resData.status) === true) ||
+      (typeof resData?.status === "string" &&
+        String(resData.status) === "success") ||
+      (typeof resData?.status === "number" && Number(resData.status) < 400)
+    ) {
       return {
-        status: resData?.status,
-        code: resData?.code,
+        status: "success",
+        code: resData?.code ? resData.code : 200,
         message: resData?.message,
-        data: resData?.data
-      }
-      }else {
-        console.log("THIS IS THE ELSE OR ERROR", res);
-        return {
-          status: res?.status,
-          code: res?.code,
-          message: res?.message
-        }
-      }
+        data: resData?.data,
+      };
+    } else {
+      return {
+        status: "error",
+        code: resData?.code ? resData.code : HTTP_BAD_REQUEST,
+        message:
+          resData?.message || "Unable To Complete The Request At This Time",
+        data: resData?.data,
+      };
+    }
   } catch (error) {
+    console.log("🚀axiosRequestFunction", error)
     return {
       status: "error",
       code: HTTP_SERVER_ERROR,
