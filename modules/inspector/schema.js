@@ -1,6 +1,6 @@
 const Joi = require("joi").extend(require("@joi/date"));
 Joi.objectId = require("joi-objectid")(Joi);
-const pattern= "/^[0-9+]{7}-[0-9+]{1}$/"
+const pattern = "/^[0-9+]{7}-[0-9+]{1}$/"
 
 exports.modelIdSchema = Joi.object().keys({
   id: Joi.string().required()
@@ -78,15 +78,26 @@ exports.validateTokenSchema = Joi.object().keys({
 
 exports.getSharpCarsSchema = Joi.object().keys({
   status: Joi.string()
-  .valid(
-    "pending", 
-    "delivered", 
-    "active",
-    "all"
-  )
-  .allow(null)
-  .optional(),
+    .valid(
+      "pending",
+      "delivered",
+      "active",
+      "all"
+    )
+    .allow(null)
+    .optional(),
   limit: Joi.number().optional(),
   page: Joi.number().optional(),
 
+})
+
+exports.paginateHubCarsSchema = Joi.object().keys({
+  limit: Joi.number().positive().required(),
+  page: Joi.number().positive().required(),
+  inspection_status: Joi.string().valid('pending', 'declined', 'approved', 'cancelled').default('pending').required(),
+})
+
+exports.inspectSharpPrivateCarSchema = Joi.object().keys({
+  remarks: Joi.string().allow(null).allow("").optional(),
+  status: Joi.string().valid('declined', 'approved', 'cancelled').required(),
 })
