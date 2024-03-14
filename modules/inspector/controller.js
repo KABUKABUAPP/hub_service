@@ -6,7 +6,7 @@ const {
   HTTP_NOT_FOUND,
   HTTP_BAD_REQUEST,
 } = require("../../helpers/httpCodes");
-const { 
+const {
   enterPhoneOrEmail,
   createPassword,
   login,
@@ -25,16 +25,18 @@ const {
   validateToken,
   getAssignedSharpCars,
   markCarsAsDelivered,
-  
+  fetchCarsFromCarOwnersForInspection,
+  inspectSharpPrivateCar,
+
 } = require("./service");
 
 exports.loginController = async (req, res) => {
   try {
     const payload = {
-     inspector: req.user,
-     password: req.body.password
+      inspector: req.user,
+      password: req.body.password
     }
-    const {status, code, message, data} = await login(payload);
+    const { status, code, message, data } = await login(payload);
     return responseObject(
       res,
       code,
@@ -61,7 +63,7 @@ exports.createPasswordController = async (req, res) => {
       password: req.body.new_password,
       otp: req.body.otp
     }
-    const {status, code, message, data} = await createPassword(payload);
+    const { status, code, message, data } = await createPassword(payload);
     return responseObject(
       res,
       code,
@@ -86,7 +88,7 @@ exports.viewInspectorProfileController = async (req, res) => {
     const payload = {
       user: req.user
     }
-    const {status, code, message, data} = await viewProfile(payload);
+    const { status, code, message, data } = await viewProfile(payload);
     return responseObject(
       res,
       code,
@@ -112,7 +114,7 @@ exports.updateProfilePictureController = async (req, res) => {
       inspector: req.user,
       picture: req.file
     }
-    const {status, code, message, data} = await updateProfilePicture(payload);
+    const { status, code, message, data } = await updateProfilePicture(payload);
     return responseObject(
       res,
       code,
@@ -139,7 +141,7 @@ exports.updatePasswordController = async (req, res) => {
       password: req.body.current_password,
       newPassword: req.body.new_password
     }
-    const {status, code, message, data} = await updatePassword(payload);
+    const { status, code, message, data } = await updatePassword(payload);
     return responseObject(
       res,
       code,
@@ -164,7 +166,7 @@ exports.forgotPasswordController = async (req, res) => {
     const payload = {
       phone_number: req.body.phone_number
     }
-    const {status, code, message, data} = await forgotPassword(payload);
+    const { status, code, message, data } = await forgotPassword(payload);
     return responseObject(
       res,
       code,
@@ -191,7 +193,7 @@ exports.resetPasswordController = async (req, res) => {
       new_password: req.body.new_password,
       otp: req.body.otp,
     }
-    const {status, code, message, data} = await resetPassword(payload);
+    const { status, code, message, data } = await resetPassword(payload);
     return responseObject(
       res,
       code,
@@ -216,7 +218,7 @@ exports.fetchDriverController = async (req, res) => {
     const payload = {
       code: req.query.inspection_code
     }
-    const {status, code, message, data} = await fetchDriverByCode(payload);
+    const { status, code, message, data } = await fetchDriverByCode(payload);
     return responseObject(
       res,
       code,
@@ -245,7 +247,7 @@ exports.approveDeclineDriverApplicationController = async (req, res) => {
       approval_status: req.body.approval_status,
       reason: req.body.reason
     }
-    const {status, code, message, data} = await approveDeclineDriverApplication(payload);
+    const { status, code, message, data } = await approveDeclineDriverApplication(payload);
     return responseObject(
       res,
       code,
@@ -271,7 +273,7 @@ exports.approveDriverApplicationQuickController = async (req, res) => {
       inspector: req.user,
       inspection_code: req.params.inspection_code,
     }
-    const {status, code, message, data} = await approveDriverApplicationQuick(payload);
+    const { status, code, message, data } = await approveDriverApplicationQuick(payload);
     return responseObject(
       res,
       code,
@@ -297,7 +299,7 @@ exports.synchronizeCameraController = async (req, res) => {
       inspection_code: req.params.inspection_code,
       device_number: req.params.device_number,
     }
-    const {status, code, message, data} = await syncCameraFromHub(payload);
+    const { status, code, message, data } = await syncCameraFromHub(payload);
     return responseObject(
       res,
       code,
@@ -323,7 +325,7 @@ exports.synchronizeLocationTrackerController = async (req, res) => {
       inspection_code: req.params.inspection_code,
       device_number: req.params.device_number,
     }
-    const {status, code, message, data} = await syncLocationTrackerFromHub(payload);
+    const { status, code, message, data } = await syncLocationTrackerFromHub(payload);
     return responseObject(
       res,
       code,
@@ -353,7 +355,7 @@ exports.fetchAssignedApplicationsController = async (req, res) => {
       date: req.query.date,
       driver_name: req.query.driver_name,
     }
-    const {status, code, message, data} = await fetchAssignedApplications(payload);
+    const { status, code, message, data } = await fetchAssignedApplications(payload);
     console.log("🚀 ~ file: controller.js:355 ~ exports.fetchAssignedApplicationsController= ~ payload:", payload)
     return responseObject(
       res,
@@ -380,7 +382,7 @@ exports.viewADriverController = async (req, res) => {
       user: req.user,
       driver_id: req.params.id
     }
-    const {status, code, message, data} = await viewADriver(payload);
+    const { status, code, message, data } = await viewADriver(payload);
     return responseObject(
       res,
       code,
@@ -405,7 +407,7 @@ exports.validateTokenController = async (req, res, next) => {
     const payload = {
       token: req.params.token
     }
-    const {status, code, message, data} = await validateToken(payload)
+    const { status, code, message, data } = await validateToken(payload)
     return responseObject(res, code, status, data, message);
   } catch (error) {
     console.log(error);
@@ -428,7 +430,7 @@ exports.getAssignedSharpCarsController = async (req, res, next) => {
       limit: req.query.limit,
       page: req.query.page,
     }
-    const {status, code, message, data} = await getAssignedSharpCars(payload)
+    const { status, code, message, data } = await getAssignedSharpCars(payload)
     return responseObject(res, code, status, data, message);
   } catch (error) {
     console.log(error);
@@ -449,7 +451,50 @@ exports.markCarsAsDeliveredController = async (req, res, next) => {
       delivery_id: req?.params?.id,
     }
     console.log("🚀 ~ exports.markCarsAsDeliveredController= ~ payload:", payload)
-    const {status, code, message, data} = await markCarsAsDelivered(payload)
+    const { status, code, message, data } = await markCarsAsDelivered(payload)
+    return responseObject(res, code, status, data, message);
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.fetchCarsFromCarOwnersForInspectionController = async (req, res, next) => {
+  try {
+    const payload = {
+      user: req.user,
+      inspection_status: req?.query?.inspection_status,
+      limit: req.query.limit,
+      page: req.query.page,
+    }
+    const { status, code, message, data } = await fetchCarsFromCarOwnersForInspection(payload)
+    return responseObject(res, code, status, data, message);
+  } catch (error) {
+    console.log(error);
+    return responseObject(
+      res,
+      HTTP_SERVER_ERROR,
+      "error",
+      null,
+      error.toString()
+    );
+  }
+};
+
+exports.inspectSharpPrivateCarController = async (req, res, next) => {
+  try {
+    const payload = {
+      id: req.params?.id,
+      status: req.query?.status,
+      ...((req?.query.remarks && (req?.query?.remarks !== null) && (req?.query?.remarks !== "")) && { remarks: req?.query?.remarks })
+    }
+    const { status, code, message, data } = await inspectSharpPrivateCar(payload)
     return responseObject(res, code, status, data, message);
   } catch (error) {
     console.log(error);

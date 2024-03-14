@@ -39,27 +39,27 @@ const {
 const config_env = require("../../config_env");
 const { messaging } = require("../../helpers/constants");
 const { updateHubInspections } = require("../hub/service");
-const { genOtp,  validateOTP } = require("../otp/service");
+const { genOtp, validateOTP } = require("../otp/service");
 //const { sendQueue } = require('../queues/index');
 
 exports.login = async (payload) => {
   try {
-    const  {
+    const {
       inspector,
       password
     } = payload
-   let message, otp
+    let message, otp
     const isPasswordCorrect = await comparePassword(inspector.password, password)
 
-    if (!isPasswordCorrect){
+    if (!isPasswordCorrect) {
       return {
         status: "error",
         code: HTTP_BAD_REQUEST,
         message: `Wrong Password Inputed`,
       };
     }
-    if (inspector.regCompleted === false){
-      message= 'Proceed to create password with OTP sent to your phone'
+    if (inspector.regCompleted === false) {
+      message = 'Proceed to create password with OTP sent to your phone'
       //Send OTP TO PHone NUmber
       const sendOTP = await genOtp({
         user_id: inspector._id,
@@ -67,14 +67,14 @@ exports.login = async (payload) => {
       })
       otp = sendOTP.data
     } else {
-      message= 'Login Successful'
+      message = 'Login Successful'
     }
     const token = issueJwt(inspector)
-   const loggedInInspector = await Inspector.findByIdAndUpdate(inspector._id, 
-      {access_token: token}, {new: true})
-    const cars_processed = await InspectionDetails.find({inspector: loggedInInspector?._id}).countDocuments()
-    const cars_approved = await InspectionDetails.find({inspector: loggedInInspector?._id, status: "approved"}).countDocuments()
-    const cars_declined = await InspectionDetails.find({inspector: loggedInInspector?._id,  status: "declined"}).countDocuments()
+    const loggedInInspector = await Inspector.findByIdAndUpdate(inspector._id,
+      { access_token: token }, { new: true })
+    const cars_processed = await InspectionDetails.find({ inspector: loggedInInspector?._id }).countDocuments()
+    const cars_approved = await InspectionDetails.find({ inspector: loggedInInspector?._id, status: "approved" }).countDocuments()
+    const cars_declined = await InspectionDetails.find({ inspector: loggedInInspector?._id, status: "declined" }).countDocuments()
     loggedInInspector.cars_processed = cars_processed
     loggedInInspector.cars_approved = cars_approved
     loggedInInspector.cars_declined = cars_declined
@@ -82,10 +82,10 @@ exports.login = async (payload) => {
     return {
       status: "success",
       code: HTTP_OK,
-      message: message ,
+      message: message,
       data: {
-        inspector: loggedInInspector, 
-        token, 
+        inspector: loggedInInspector,
+        token,
         otp
       }
     }
@@ -103,7 +103,7 @@ exports.login = async (payload) => {
 
 exports.createPassword = async (payload) => {
   try {
-    const  {
+    const {
       inspector,
       password,
       otp
@@ -111,13 +111,13 @@ exports.createPassword = async (payload) => {
 
     const verifyOTP = await validateOTP({
       user_id: inspector._id,
-      otp:otp
+      otp: otp
     })
-     if(verifyOTP.status === "error"){
+    if (verifyOTP.status === "error") {
       return verifyOTP
     }
 
-    if(Boolean(inspector.regCompleted) === true){
+    if (Boolean(inspector.regCompleted) === true) {
       return {
         status: "error",
         code: HTTP_BAD_REQUEST,
@@ -125,14 +125,14 @@ exports.createPassword = async (payload) => {
       }
     }
     //VAlidate OTP
-    
-   
-   const hashed = await hashPassword(password)
-   await Inspector.findByIdAndUpdate(inspector._id, {
-    password: hashed,
-    regCompleted: true
-  })
-   const passwordedInspector = await Inspector.findById(inspector._id)
+
+
+    const hashed = await hashPassword(password)
+    await Inspector.findByIdAndUpdate(inspector._id, {
+      password: hashed,
+      regCompleted: true
+    })
+    const passwordedInspector = await Inspector.findById(inspector._id)
 
     return {
       status: "success",
@@ -142,7 +142,7 @@ exports.createPassword = async (payload) => {
     }
 
   } catch (error) {
-     console.log(error);
+    console.log(error);
     return {
       status: "error",
       code: HTTP_SERVER_ERROR,
@@ -154,13 +154,13 @@ exports.createPassword = async (payload) => {
 
 exports.viewProfile = async (payload) => {
   try {
-    const  {
+    const {
       user
     } = payload
 
-     const cars_processed = await InspectionDetails.find({inspector: user?._id}).countDocuments()
-    const cars_approved = await InspectionDetails.find({inspector: user?._id, status: "approved"}).countDocuments()
-    const cars_declined = await InspectionDetails.find({inspector: user?._id,  status: "declined"}).countDocuments()
+    const cars_processed = await InspectionDetails.find({ inspector: user?._id }).countDocuments()
+    const cars_approved = await InspectionDetails.find({ inspector: user?._id, status: "approved" }).countDocuments()
+    const cars_declined = await InspectionDetails.find({ inspector: user?._id, status: "declined" }).countDocuments()
     user.cars_processed = cars_processed
     user.cars_approved = cars_approved
     user.cars_declined = cars_declined
@@ -174,7 +174,7 @@ exports.viewProfile = async (payload) => {
     }
 
   } catch (error) {
-     console.log(error);
+    console.log(error);
     return {
       status: "error",
       code: HTTP_SERVER_ERROR,
@@ -186,14 +186,14 @@ exports.viewProfile = async (payload) => {
 
 exports.updateProfilePicture = async (payload) => {
   try {
-    const  {
+    const {
       inspector,
       picture
     } = payload
-    const imgUrl = picture? await imageUploader(picture?.path):undefined
+    const imgUrl = picture ? await imageUploader(picture?.path) : undefined
     const updatedInspector = await Inspector.findByIdAndUpdate(inspector?._id, {
       profile_image: imgUrl
-    }, {new: true})
+    }, { new: true })
 
     return {
       status: "success",
@@ -203,7 +203,7 @@ exports.updateProfilePicture = async (payload) => {
     }
 
   } catch (error) {
-     console.log(error);
+    console.log(error);
     return {
       status: "error",
       code: HTTP_SERVER_ERROR,
@@ -216,23 +216,23 @@ exports.updateProfilePicture = async (payload) => {
 
 exports.updatePassword = async (payload) => {
   try {
-    const  {
+    const {
       inspector,
       password,
       newPassword
     } = payload
-    
+
     const isPasswordCorrect = await comparePassword(inspector.password, password)
 
-    if(password === newPassword){
-       return {
+    if (password === newPassword) {
+      return {
         status: "error",
         code: HTTP_BAD_REQUEST,
         message: `Current Password And New Password The Same`,
       };
     }
 
-    if (!isPasswordCorrect){
+    if (!isPasswordCorrect) {
       return {
         status: "error",
         code: HTTP_BAD_REQUEST,
@@ -241,10 +241,10 @@ exports.updatePassword = async (payload) => {
     }
 
     const hashed = await hashPassword(newPassword)
-   const updated = await Inspector.findByIdAndUpdate(inspector._id, {
+    const updated = await Inspector.findByIdAndUpdate(inspector._id, {
       password: hashed,
       regCompleted: true
-    }, {new:true})
+    }, { new: true })
 
     return {
       status: "success",
@@ -265,14 +265,14 @@ exports.updatePassword = async (payload) => {
 
 exports.forgotPassword = async (payload) => {
   try {
-    const  {
+    const {
       phone_number,
     } = payload
-    
+
     const formatted = formatPhoneNumber(phone_number)
-    const exisingInspector = await Inspector.findOne({phone_number: formatted})
-    
-    if(!exisingInspector){
+    const exisingInspector = await Inspector.findOne({ phone_number: formatted })
+
+    if (!exisingInspector) {
       return {
         status: "error",
         code: HTTP_BAD_REQUEST,
@@ -280,10 +280,10 @@ exports.forgotPassword = async (payload) => {
       };
     }
 
-     const sendOTP = await genOtp({
-        user_id: exisingInspector._id,
-        phone_number: exisingInspector.phone_number
-      })
+    const sendOTP = await genOtp({
+      user_id: exisingInspector._id,
+      phone_number: exisingInspector.phone_number
+    })
     const otp = sendOTP.data
 
     return {
@@ -309,17 +309,17 @@ exports.forgotPassword = async (payload) => {
 
 exports.resetPassword = async (payload) => {
   try {
-    const  {
+    const {
       inspector,
       new_password,
       otp
     } = payload
-    
-     const verifyOTP = await validateOTP({
+
+    const verifyOTP = await validateOTP({
       user_id: inspector._id,
-      otp:otp
+      otp: otp
     })
-     if(verifyOTP.status === "error"){
+    if (verifyOTP.status === "error") {
       return verifyOTP
     }
 
@@ -327,9 +327,9 @@ exports.resetPassword = async (payload) => {
     const updated = await Inspector.findByIdAndUpdate(inspector._id, {
       password: hashed,
       regCompleted: true
-    }, {new:true})
+    }, { new: true })
 
-       
+
     return {
       status: "success",
       code: HTTP_OK,
@@ -350,40 +350,40 @@ exports.resetPassword = async (payload) => {
 
 exports.fetchDriverByCode = async (payload) => {
   try {
-    const  {
+    const {
       code
     } = payload
 
-   const axiosResponse = await axios.get(
+    const axiosResponse = await axios.get(
       `${config_env.RIDE_SERVICE_BASE_URL}/driver/inspection_code`,
-      {params: {inspection_code: code}}
-   ).catch(function (error) {
-    if (error.response) {
-      return {
-        status: error.response.data.status,
-        code: error.response.status,
-        message: error.response.data.message,
+      { params: { inspection_code: code } }
+    ).catch(function (error) {
+      if (error.response) {
+        return {
+          status: error.response.data.status,
+          code: error.response.status,
+          message: error.response.data.message,
+        }
+      } else if (error.request) {
+        console.log("AXIOS ERROR REQUEST>>>>", error.request);
+      } else {
+        console.log('Error', error.message);
       }
-    } else if (error.request) {
-      console.log("AXIOS ERROR REQUEST>>>>", error.request);
+      console.log(error.config);
+    });
+
+
+    let driver_details
+    if (Number(axiosResponse.status) < 400) {
+      driver_details = axiosResponse.data.data
     } else {
-      console.log('Error', error.message);
+      return {
+        status: axiosResponse.status,
+        code: axiosResponse.code,
+        message: axiosResponse.message
+      }
     }
-    console.log(error.config);
-  });
 
-
-   let driver_details
-   if(Number(axiosResponse.status) < 400){
-    driver_details = axiosResponse.data.data
-   } else  {
-    return {
-      status:axiosResponse.status,
-      code: axiosResponse.code,
-      message: axiosResponse.message
-    }
-   }
-  
     return {
       status: "status",
       code: HTTP_OK,
@@ -404,132 +404,132 @@ exports.fetchDriverByCode = async (payload) => {
 
 exports.approveDeclineDriverApplication = async (payload) => {
   try {
-    const  {
+    const {
       inspector,
       driver_id,
       hub_id,
       approval_status,
       reason
     } = payload
-    let message, 
-      hubUpdate, 
-      finalAxiosReq, 
-      no_of_cars_processed, 
-      no_of_cars_approved, 
+    let message,
+      hubUpdate,
+      finalAxiosReq,
+      no_of_cars_processed,
+      no_of_cars_approved,
       no_of_cars_declined
 
-  if(String(approval_status).toLowerCase() === "active"){
-    message = "Driver Application Approved Successfully"
-    // const axiosReq = await axiosRequestFunction({
-    //   method: "get",
-    //   url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/verify-driver-approval/${driver_id}`
-    // })
-    // if(axiosReq.status !== "success"){
-    //   return {
-    //     status: "error",
-    //     code: axiosReq.code,
-    //     message: axiosReq.message
-    //   }
-    // }
-    console.log("INSPECTOR??????", inspector);
-    const axiosToAuth = await axiosRequestFunction({
-      method: "put",
-      url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
-      data: {
-        approval_status: approval_status,
-        reason: reason,
-        inspector_id: inspector._id,
-        assigned_hub_id: inspector?.assigned_hub,
-      }
-    })
-    if(axiosToAuth.status !== "success"){
-      return {
-        status: "error",
-        code: axiosToAuth.code,
-        message: axiosToAuth.message
-      }
-    }
-    const inspected = await InspectionDetails.findOne({inspector: inspector._id, driver: driver_id, hub: inspector?.assigned_hub })
-    if(inspected){
-      await InspectionDetails.findByIdAndUpdate(inspected?._id, {
-        status: "approved",
-      }, {new:true})
-      no_of_cars_processed = await InspectionDetails.find({inspector: inspector._id, driver: driver_id,}).countDocuments();
-      no_of_cars_approved = await InspectionDetails.find({inspector: inspector._id, driver: driver_id, status: "approved"}).countDocuments();
-    
-    } else {
-      await InspectionDetails.create({
-        driver: driver_id,
-        status: "approved",
-        inspector: inspector?._id,
-        hub: inspector?.assigned_hub
+    if (String(approval_status).toLowerCase() === "active") {
+      message = "Driver Application Approved Successfully"
+      // const axiosReq = await axiosRequestFunction({
+      //   method: "get",
+      //   url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/verify-driver-approval/${driver_id}`
+      // })
+      // if(axiosReq.status !== "success"){
+      //   return {
+      //     status: "error",
+      //     code: axiosReq.code,
+      //     message: axiosReq.message
+      //   }
+      // }
+      console.log("INSPECTOR??????", inspector);
+      const axiosToAuth = await axiosRequestFunction({
+        method: "put",
+        url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
+        data: {
+          approval_status: approval_status,
+          reason: reason,
+          inspector_id: inspector._id,
+          assigned_hub_id: inspector?.assigned_hub,
+        }
       })
-      no_of_cars_processed = await InspectionDetails.find({inspector: inspector._id, driver: driver_id,}).countDocuments();
-      no_of_cars_approved = await InspectionDetails.find({inspector: inspector._id, driver: driver_id, status: "approved"}).countDocuments();
-    
-    }
-    const afterInspector = await Inspector.findByIdAndUpdate(inspector?._id, {
-      cars_processed: no_of_cars_processed,
-      cars_approved: no_of_cars_approved
-    }, {new:true})
-    hubUpdate = {
-      hub_id: afterInspector.assigned_hub,
-      driver_id: driver_id,
-      status: "approved"
-    }
-    //update hub center
-    await updateHubInspections(hubUpdate)
-    finalAxiosReq = axiosToAuth
+      if (axiosToAuth.status !== "success") {
+        return {
+          status: "error",
+          code: axiosToAuth.code,
+          message: axiosToAuth.message
+        }
+      }
+      const inspected = await InspectionDetails.findOne({ inspector: inspector._id, driver: driver_id, hub: inspector?.assigned_hub })
+      if (inspected) {
+        await InspectionDetails.findByIdAndUpdate(inspected?._id, {
+          status: "approved",
+        }, { new: true })
+        no_of_cars_processed = await InspectionDetails.find({ inspector: inspector._id, driver: driver_id, }).countDocuments();
+        no_of_cars_approved = await InspectionDetails.find({ inspector: inspector._id, driver: driver_id, status: "approved" }).countDocuments();
 
-  } else {
-    message = 'Driver Application Declned Successfully'
-    const axiosToAuth = await axiosRequestFunction({
-      method: "put",
-      url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
-      data: {
-        approval_status: approval_status,
-        reason: reason,
-        inspector_id: inspector._id
+      } else {
+        await InspectionDetails.create({
+          driver: driver_id,
+          status: "approved",
+          inspector: inspector?._id,
+          hub: inspector?.assigned_hub
+        })
+        no_of_cars_processed = await InspectionDetails.find({ inspector: inspector._id, driver: driver_id, }).countDocuments();
+        no_of_cars_approved = await InspectionDetails.find({ inspector: inspector._id, driver: driver_id, status: "approved" }).countDocuments();
+
       }
-    })
-    if(axiosToAuth.status !== "success"){
-      return {
-        status: "error",
-        code: axiosToAuth.code,
-        message: axiosToAuth.message
+      const afterInspector = await Inspector.findByIdAndUpdate(inspector?._id, {
+        cars_processed: no_of_cars_processed,
+        cars_approved: no_of_cars_approved
+      }, { new: true })
+      hubUpdate = {
+        hub_id: afterInspector.assigned_hub,
+        driver_id: driver_id,
+        status: "approved"
       }
-    }
-    const inspected = await InspectionDetails.findOne({inspector: inspector._id, driver: driver_id, hub: inspector?.assigned_hub })
-    if(inspected){
-      await InspectionDetails.findByIdAndUpdate(inspected?._id, {
-        status: "declined",
-      }, {new:true})
-      no_of_cars_processed = await InspectionDetails.find({inspector: inspector._id, driver: driver_id,}).countDocuments();
-      no_of_cars_declined = await InspectionDetails.find({inspector: inspector._id, driver: driver_id, status: "declined"}).countDocuments();
+      //update hub center
+      await updateHubInspections(hubUpdate)
+      finalAxiosReq = axiosToAuth
+
     } else {
-      await InspectionDetails.create({
-        driver: driver_id,
-        status: "declined",
-        inspector: inspector?._id,
-        hub: inspector?.assigned_hub
+      message = 'Driver Application Declned Successfully'
+      const axiosToAuth = await axiosRequestFunction({
+        method: "put",
+        url: `${config_env.RIDE_SERVICE_BASE_URL}/driver/complete-driver-onboarding/${driver_id}`,
+        data: {
+          approval_status: approval_status,
+          reason: reason,
+          inspector_id: inspector._id
+        }
       })
-      no_of_cars_processed = await InspectionDetails.find({inspector: inspector._id, driver: driver_id,}).countDocuments();
-      no_of_cars_declined = await InspectionDetails.find({inspector: inspector._id, driver: driver_id, status: "approved"}).countDocuments();
-    
+      if (axiosToAuth.status !== "success") {
+        return {
+          status: "error",
+          code: axiosToAuth.code,
+          message: axiosToAuth.message
+        }
+      }
+      const inspected = await InspectionDetails.findOne({ inspector: inspector._id, driver: driver_id, hub: inspector?.assigned_hub })
+      if (inspected) {
+        await InspectionDetails.findByIdAndUpdate(inspected?._id, {
+          status: "declined",
+        }, { new: true })
+        no_of_cars_processed = await InspectionDetails.find({ inspector: inspector._id, driver: driver_id, }).countDocuments();
+        no_of_cars_declined = await InspectionDetails.find({ inspector: inspector._id, driver: driver_id, status: "declined" }).countDocuments();
+      } else {
+        await InspectionDetails.create({
+          driver: driver_id,
+          status: "declined",
+          inspector: inspector?._id,
+          hub: inspector?.assigned_hub
+        })
+        no_of_cars_processed = await InspectionDetails.find({ inspector: inspector._id, driver: driver_id, }).countDocuments();
+        no_of_cars_declined = await InspectionDetails.find({ inspector: inspector._id, driver: driver_id, status: "approved" }).countDocuments();
+
+      }
+      const afterInspector = await Inspector.findByIdAndUpdate(inspector?._id, {
+        cars_processed: no_of_cars_processed,
+        cars_declined: no_of_cars_declined
+      }, { new: true })
+      hubUpdate = {
+        hub_id: afterInspector.assigned_hub,
+        driver_id: driver_id,
+        status: "declined"
+      }
+      await updateHubInspections(hubUpdate)
+      finalAxiosReq = axiosToAuth
+
     }
-    const afterInspector = await Inspector.findByIdAndUpdate(inspector?._id, {
-      cars_processed: no_of_cars_processed,
-      cars_declined: no_of_cars_declined
-    }, {new:true})
-    hubUpdate = {
-      hub_id: afterInspector.assigned_hub,
-      driver_id: driver_id,
-      status: "declined"
-    }
-    await updateHubInspections(hubUpdate)
-    finalAxiosReq = axiosToAuth
-    
-  }
 
     //Complete Driver Onboarding
     console.log("TOTAL_CARS_PROCESSED>>>>", no_of_cars_processed);
@@ -543,7 +543,7 @@ exports.approveDeclineDriverApplication = async (payload) => {
     }
   } catch (error) {
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
@@ -555,7 +555,7 @@ exports.approveDeclineDriverApplication = async (payload) => {
 
 exports.syncLocationTrackerFromHub = async (payload) => {
   try {
-    const  {
+    const {
       inspection_code,
       device_number
     } = payload
@@ -565,27 +565,27 @@ exports.syncLocationTrackerFromHub = async (payload) => {
     const axiosReq = await axiosRequestFunction({
       method: "put",
       url: `${config_env.RIDE_SERVICE_BASE_URL}/car/sync-location-tracker/from-hub`,
-      data: {inspection_code, device_number}
+      data: { inspection_code, device_number }
     })
-  if(axiosReq.status !== "success"){
-    return {
-      status: "error",
-      code: axiosReq.code,
-      message: axiosReq.message
-    }
-    
-  } else {
+    if (axiosReq.status !== "success") {
+      return {
+        status: "error",
+        code: axiosReq.code,
+        message: axiosReq.message
+      }
 
-    return {
-      status: "success",
-      code: axiosReq?.code,
-      message: axiosReq?.message,
-      data: axiosReq?.data
+    } else {
+
+      return {
+        status: "success",
+        code: axiosReq?.code,
+        message: axiosReq?.message,
+        data: axiosReq?.data
+      }
     }
-  }
   } catch (error) {
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
@@ -594,7 +594,7 @@ exports.syncLocationTrackerFromHub = async (payload) => {
 
 exports.syncCameraFromHub = async (payload) => {
   try {
-    const  {
+    const {
       inspection_code,
       device_number
     } = payload
@@ -603,27 +603,27 @@ exports.syncCameraFromHub = async (payload) => {
     const axiosReq = await axiosRequestFunction({
       method: "put",
       url: `${config_env.RIDE_SERVICE_BASE_URL}/car/sync-camera/from-hub`,
-      data: {inspection_code, device_number}
+      data: { inspection_code, device_number }
     })
-    if(axiosReq.status !== "success"){
-    return {
-      status: "error",
-      code: axiosReq.code,
-      message: axiosReq.message
-    }
+    if (axiosReq.status !== "success") {
+      return {
+        status: "error",
+        code: axiosReq.code,
+        message: axiosReq.message
+      }
 
-  } else {
+    } else {
 
-    return {
-      status: "success",
-      code: axiosReq?.code,
-      message: axiosReq?.message,
-      data: axiosReq?.data
+      return {
+        status: "success",
+        code: axiosReq?.code,
+        message: axiosReq?.message,
+        data: axiosReq?.data
+      }
     }
-  }
   } catch (error) {
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
@@ -633,46 +633,46 @@ exports.syncCameraFromHub = async (payload) => {
 
 exports.approveDriverApplicationQuick = async (payload) => {
   try {
-    const  {
+    const {
       inspector,
       inspection_code,
     } = payload
-    const fetch_id = await this.fetchDriverByCode({code: inspection_code})
+    const fetch_id = await this.fetchDriverByCode({ code: inspection_code })
     const approve = await this.approveDeclineDriverApplication({
       inspector,
       driver_id: fetch_id?.data?.driver._id,
       approval_status: "active"
     })
 
-  
-    if(approve.status !== "success"){
+
+    if (approve.status !== "success") {
       return {
         status: "error",
         code: approve.code,
         message: approve.message
       }
     }
-  else {
-    return {
-      status: "success",
-      code: approve?.code,
-      message: approve?.message,
-      data: approve?.data
-    }  
-  }
-  //  
-    
+    else {
+      return {
+        status: "success",
+        code: approve?.code,
+        message: approve?.message,
+        data: approve?.data
+      }
+    }
+    //  
+
 
   } catch (error) {
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
   }
 };
 
-exports.fetchAssignedApplications = async(payload) => {
+exports.fetchAssignedApplications = async (payload) => {
   try {
     const {
       user,
@@ -685,22 +685,22 @@ exports.fetchAssignedApplications = async(payload) => {
     const pendingApplications = await axiosRequestFunction({
       url: config_env.RIDE_SERVICE_BASE_URL + `/driver/fetch-assigned-applications`,
       method: "get",
-      params: {limit, page, approval_status:approval_status, date: date, driver_name, inspector_id: String(user._id), assigned_hub_id: String(user?.assigned_hub)},
-      headers: {hubid: user._id}
+      params: { limit, page, approval_status: approval_status, date: date, driver_name, inspector_id: String(user._id), assigned_hub_id: String(user?.assigned_hub) },
+      headers: { hubid: user._id }
     })
 
     return pendingApplications
   } catch (error) {
     console.log(error);
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
   }
 }
 
-exports.viewADriver = async(payload) => {
+exports.viewADriver = async (payload) => {
   try {
     const {
       user,
@@ -709,27 +709,27 @@ exports.viewADriver = async(payload) => {
     const pendingApplications = await axiosRequestFunction({
       url: config_env.RIDE_SERVICE_BASE_URL + `/driver/view-driver-from-hub/${driver_id}`,
       method: "get",
-      headers: {hubid: user._id}
+      headers: { hubid: user._id }
     })
 
     return pendingApplications
   } catch (error) {
     console.log(error);
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
   }
 }
-exports.inspectorsHubsCars = async({inspector_id, hub_id, limit, page}) => {
+exports.inspectorsHubsCars = async ({ inspector_id, hub_id, limit, page }) => {
   try {
-    const cars_processed_by_inspector = await InspectionDetails.find({inspector: inspector_id}).countDocuments()
-    const cars_approved_by_inspector = await InspectionDetails.find({inspector: inspector_id, status: "approved"}).countDocuments()
-    const cars_declined_by_inspector  = await InspectionDetails.find({inspector: inspector_id,  status: "declined"}).countDocuments()
-    const cars_processed_in_hub = await InspectionDetails.find({hub: hub_id}).countDocuments()
-    const cars_approved_in_hub = await InspectionDetails.find({hub: hub_id, status: "approved"}).countDocuments()
-    const cars_declined_in_hub  = await InspectionDetails.find({hub: hub_id,  status: "declined"}).countDocuments()
+    const cars_processed_by_inspector = await InspectionDetails.find({ inspector: inspector_id }).countDocuments()
+    const cars_approved_by_inspector = await InspectionDetails.find({ inspector: inspector_id, status: "approved" }).countDocuments()
+    const cars_declined_by_inspector = await InspectionDetails.find({ inspector: inspector_id, status: "declined" }).countDocuments()
+    const cars_processed_in_hub = await InspectionDetails.find({ hub: hub_id }).countDocuments()
+    const cars_approved_in_hub = await InspectionDetails.find({ hub: hub_id, status: "approved" }).countDocuments()
+    const cars_declined_in_hub = await InspectionDetails.find({ hub: hub_id, status: "declined" }).countDocuments()
     // const driver_ids = await InspectionDetails.find({
     //   $or: [
     //     {hub: hub_id},
@@ -762,50 +762,50 @@ exports.inspectorsHubsCars = async({inspector_id, hub_id, limit, page}) => {
       data
     }
 
-    
+
   } catch (error) {
-     console.log(error);
+    console.log(error);
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
   }
-} 
+}
 
-exports.validateToken = async(payload) => {
+exports.validateToken = async (payload) => {
   try {
     const {
       token
     } = payload
-    const {id} = verifyJwt(token)
-    const inspector = id? await Inspector.findById(id): undefined
-    if(inspector){
+    const { id } = verifyJwt(token)
+    const inspector = id ? await Inspector.findById(id) : undefined
+    if (inspector) {
       return {
-          status: "success",
-          code: HTTP_OK,
-          message: `inspector Retreived successfully`,
-          data: inspector
-        };
+        status: "success",
+        code: HTTP_OK,
+        message: `inspector Retreived successfully`,
+        data: inspector
+      };
     } else {
-       return {
+      return {
         status: "error",
         code: HTTP_UNAUTHORIZED,
         message: 'Unathourized Access'
       }
     }
-    
+
   } catch (error) {
-     console.log(error);
+    console.log(error);
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
   }
-} 
+}
 
-exports.getAssignedSharpCars = async(payload) => {
+exports.getAssignedSharpCars = async (payload) => {
   try {
     const {
       inspector,
@@ -816,27 +816,27 @@ exports.getAssignedSharpCars = async(payload) => {
     const axiosResponse = await axiosRequestFunction({
       method: "get",
       url: `${config_env.RIDE_SERVICE_BASE_URL}/car/get-sharp-cars-from-hub-service`,
-      params:{
+      params: {
         status: status,
         inspector_id: String(inspector?._id),
         hub_id: String(inspector?.assigned_hub),
-        limit: limit? limit: "10",
-        page: page ? page : "1" 
+        limit: limit ? limit : "10",
+        page: page ? page : "1"
       }
     })
     return axiosResponse
-    
+
   } catch (error) {
-     console.log(error);
+    console.log(error);
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
   }
-} 
+}
 
-exports.markCarsAsDelivered = async(payload) => {
+exports.markCarsAsDelivered = async (payload) => {
   try {
     const {
       inspector,
@@ -845,19 +845,76 @@ exports.markCarsAsDelivered = async(payload) => {
     const axiosResponse = await axiosRequestFunction({
       method: "put",
       url: `${config_env.RIDE_SERVICE_BASE_URL}/car/mark-cars-as-delivered/${delivery_id}`,
-      params:{
-        inspector_id: String(inspector?.id), 
-        hub_id: inspector?.assigned_hub, 
+      params: {
+        inspector_id: String(inspector?.id),
+        hub_id: inspector?.assigned_hub,
       }
     })
     return axiosResponse
-    
+
   } catch (error) {
-     console.log(error);
+    console.log(error);
     return {
-      status:"error",
+      status: "error",
       code: HTTP_SERVER_ERROR,
       message: error.message
     };
   }
-} 
+}
+
+exports.fetchCarsFromCarOwnersForInspection = async (payload) => {
+  try {
+    const {
+      user,
+      limit,
+      page,
+      inspection_status
+    } = payload
+    const hub_id = String(user?.assigned_hub)
+    const pendingApplications = await axiosRequestFunction({
+      url: config_env.RIDE_SERVICE_BASE_URL + `/sharp/get-sharp-cars-assigned-to-a-hub/${hub_id}`,
+      method: "get",
+      params: {
+        limit,
+        page,
+        inspection_status
+      }
+    })
+
+    return pendingApplications
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message
+    };
+  }
+}
+
+exports.inspectSharpPrivateCar = async (payload) => {
+  try {
+    const {
+      id,
+      status,
+      remarks,
+    } = payload
+    const inspectACarResponse = await axiosRequestFunction({
+      url: config_env.RIDE_SERVICE_BASE_URL + `/sharp/inspect-sharp-private/${id}`,
+      method: "put",
+      params: {
+        status,
+        remarks,
+      }
+    })
+
+    return inspectACarResponse
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      code: HTTP_SERVER_ERROR,
+      message: error.message
+    };
+  }
+}

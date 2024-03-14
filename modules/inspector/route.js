@@ -2,9 +2,9 @@ const { Router } = require("express");
 
 // const { auth } = require("../../isAuthenticated");
 const { authTest, isAuthorized, authorizeInspectorLogin } = require("../../middlewares/auth");
-const { 
-  enterPhoneOrEmailController, 
-  createPasswordController, 
+const {
+  enterPhoneOrEmailController,
+  createPasswordController,
   loginController,
   fetchDriverController,
   approveDeclineDriverApplicationController,
@@ -20,10 +20,12 @@ const {
   updateProfilePictureController,
   validateTokenController,
   getAssignedSharpCarsController,
-  markCarsAsDeliveredController
+  markCarsAsDeliveredController,
+  fetchCarsFromCarOwnersForInspectionController,
+  inspectSharpPrivateCarController
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
-const { 
+const {
   loginSchema,
   fetchDriverSchema,
   modelIdSchema,
@@ -36,21 +38,23 @@ const {
   forgotPasswordSchema,
   resetPasswordSchema,
   validateTokenSchema,
-  getSharpCarsSchema
- } = require("./schema");
+  getSharpCarsSchema,
+  paginateHubCarsSchema,
+  inspectSharpPrivateCarSchema
+} = require("./schema");
 const { multerUpload } = require("../../config");
 
 const router = Router();
 
 router.post(
-  "/login", 
+  "/login",
   validateRequest(loginSchema, "body"),
   authorizeInspectorLogin,
   loginController
 );
 
 router.post(
-  "/create-password", 
+  "/create-password",
   validateRequest(createNewPasswordSchema, "body"),
   isAuthorized,
   createPasswordController
@@ -67,24 +71,24 @@ router.put(
   isAuthorized,
   multerUpload.single('profile_image'),
   updateProfilePictureController
-  
+
 );
 
 router.put(
-  "/update-password", 
+  "/update-password",
   validateRequest(updatePasswordSchema, "body"),
   isAuthorized,
   updatePasswordController
 );
 
 router.post(
-  "/forgot-password", 
+  "/forgot-password",
   validateRequest(forgotPasswordSchema, "body"),
   forgotPasswordController
 );
 
 router.put(
-  "/reset-password", 
+  "/reset-password",
   isAuthorized,
   validateRequest(resetPasswordSchema, "body"),
   resetPasswordController
@@ -113,29 +117,29 @@ router.get(
 );
 
 router.get(
-  "/sync-camera/:inspection_code/:device_number", 
+  "/sync-camera/:inspection_code/:device_number",
   // isAuthorized, 
   validateRequest(synchDevicesSchema, "params"),
   synchronizeCameraController
 );
 
 router.get(
-  "/sync-location-tracker/:inspection_code/:device_number", 
+  "/sync-location-tracker/:inspection_code/:device_number",
   // isAuthorized, 
   validateRequest(synchDevicesSchema, "params"),
   synchronizeLocationTrackerController
 );
 
 router.get(
-  "/assigned-applications", 
-  isAuthorized, 
+  "/assigned-applications",
+  isAuthorized,
   validateRequest(paginateSchema, "query"),
   fetchAssignedApplicationsController
 );
 
 router.get(
-  "/view-a-driver/:id", 
-  isAuthorized, 
+  "/view-a-driver/:id",
+  isAuthorized,
   validateRequest(modelIdSchema, "params"),
   viewADriverController
 );
@@ -159,5 +163,21 @@ router.put(
   validateRequest(modelIdSchema, "params"),
   markCarsAsDeliveredController,
 );
+
+router.get(
+  "/fetch-private-sharp-cars",
+  isAuthorized,
+  validateRequest(paginateHubCarsSchema, "query"),
+  fetchCarsFromCarOwnersForInspectionController,
+);
+
+router.put(
+  "/inspect-sharp-private/:id",
+  isAuthorized,
+  validateRequest(modelIdSchema, "params"),
+  validateRequest(inspectSharpPrivateCarSchema, "query"),
+  inspectSharpPrivateCarController,
+);
+
 
 module.exports = router;
