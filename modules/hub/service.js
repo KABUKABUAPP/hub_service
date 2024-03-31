@@ -29,21 +29,21 @@ exports.updateHubInspections = async (payload) => {
       driver_id
     } = payload
     const hub = await Hub.findById(hub_id)
-    if(hub){
-      const no_of_cars = await InspectionDetails.find({hub: hub_id}).countDocuments()
-      const no_of_cars_processed = await InspectionDetails.find({hub: hub_id, status: status}).countDocuments()
-      if (status === "approved"){
-        await Hub.findByIdAndUpdate(hub_id, 
-          { 
+    if (hub) {
+      const no_of_cars = await InspectionDetails.find({ hub: hub_id }).countDocuments()
+      const no_of_cars_processed = await InspectionDetails.find({ hub: hub_id, status: status }).countDocuments()
+      if (status === "approved") {
+        await Hub.findByIdAndUpdate(hub_id,
+          {
             cars_processed: no_of_cars,
             cars_approved: no_of_cars_processed
           }
 
         )
       }
-      if(status === "declined"){
-        await Hub.findByIdAndUpdate(hub_id, 
-          {  
+      if (status === "declined") {
+        await Hub.findByIdAndUpdate(hub_id,
+          {
             cars_processed: no_of_cars,
             cars_declined: no_of_cars_processed
           }
@@ -65,10 +65,10 @@ exports.fetchHubByLocationService = async (payload) => {
       city, state
     } = payload
     let foundHub
-    const stateHub = await Hub.findOne({state:{$regex: state, $options: "i" }, deleted: false})
-    const cityHub = await Hub.findOne({city:{$regex: city, $options: "i" }, deleted: false})
-    foundHub = cityHub?cityHub:stateHub
-    if(!foundHub){
+    const stateHub = await Hub.findOne({ state: { $regex: state, $options: "i" }, deleted: false })
+    const cityHub = await Hub.findOne({ city: { $regex: city, $options: "i" }, deleted: false })
+    foundHub = cityHub ? cityHub : stateHub ? stateHub : await Hub.findOne({})
+    if (!foundHub) {
       return {
         status: "error",
         code: HTTP_NOT_FOUND,
@@ -97,22 +97,22 @@ exports.fetchHubByLocationService = async (payload) => {
 
 exports.fetchAssignedHubDetails = async (id) => {
   try {
-    const availableInspector =  await Inspector.findOne({
-      assigned_hub:id
+    const availableInspector = await Inspector.findOne({
+      assigned_hub: id
     }).populate({
       path: "assigned_hub",
       select: 'name address city state'
     })
     const hubDetails = {
-      first_name : availableInspector?.first_name || "", 
-      last_name : availableInspector?.last_name || "", 
-      phone_number : availableInspector?.phone_number || "", 
-      address : availableInspector?.assigned_hub?.address || "", 
-      city : availableInspector?.assigned_hub?.city || "", 
-      state : availableInspector?.assigned_hub?.state || "", 
+      first_name: availableInspector?.first_name || "",
+      last_name: availableInspector?.last_name || "",
+      phone_number: availableInspector?.phone_number || "",
+      address: availableInspector?.assigned_hub?.address || "",
+      city: availableInspector?.assigned_hub?.city || "",
+      state: availableInspector?.assigned_hub?.state || "",
     }
 
-    
+
 
     return {
       status: "success",
@@ -133,10 +133,10 @@ exports.fetchAssignedHubDetails = async (id) => {
 
 exports.fetchHubByIdService = async (hub_id) => {
   try {
-    
-    const foundHub = await Hub.findOne({_id: hub_id, deleted: false})
-    .select(" _id name address city state country hub_images inspector deleted ")
-    if(!foundHub){
+
+    const foundHub = await Hub.findOne({ _id: hub_id, deleted: false })
+      .select(" _id name address city state country hub_images inspector deleted ")
+    if (!foundHub) {
       return {
         status: "error",
         code: HTTP_NOT_FOUND,
@@ -144,8 +144,8 @@ exports.fetchHubByIdService = async (hub_id) => {
       }
     }
 
-    const inspectors = await Inspector.find({assigned_hub: hub_id})
-    .select("_id first_name last_name phone_number email deleted ")
+    const inspectors = await Inspector.find({ assigned_hub: hub_id })
+      .select("_id first_name last_name phone_number email deleted ")
 
 
     return {
