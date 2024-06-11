@@ -51,6 +51,6 @@ exports.synchDevicesSchema = Joi.object().keys({
 })
 
 exports.fetchHubByLocationSchema = Joi.object().keys({
-  state: Joi.string().required(),
-  city: Joi.string().required(),
+  state: Joi.string().default("Lagos").optional(),
+  city: Joi.string().default("Ikeja").optional(),
 })

@@ -65,8 +65,8 @@ exports.fetchHubByLocationService = async (payload) => {
       city, state
     } = payload
     let foundHub
-    const stateHub = await Hub.findOne({ state: { $regex: state, $options: "i" }, deleted: false })
-    const cityHub = await Hub.findOne({ city: { $regex: city, $options: "i" }, deleted: false })
+    const stateHub = state ? await Hub.findOne({ state: { $regex: state, $options: "i" }, deleted: false }) : undefined
+    const cityHub = city ? await Hub.findOne({ city: { $regex: city, $options: "i" }, deleted: false }) : undefined
     foundHub = cityHub ? cityHub : stateHub ? stateHub : await Hub.findOne({})
     if (!foundHub) {
       return {
