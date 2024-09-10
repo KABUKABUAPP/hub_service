@@ -91,6 +91,7 @@ exports.getSharpCarsSchema = Joi.object().keys({
     .optional(),
   limit: Joi.number().optional(),
   page: Joi.number().optional(),
+  search: Joi.string().allow(null).allow("").optional(),
 
 })
 
