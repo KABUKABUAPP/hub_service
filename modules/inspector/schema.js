@@ -1,3 +1,5 @@
+const { carPickUpStatus } = require("../../helpers/constants");
+
 const Joi = require("joi").extend(require("@joi/date"));
 Joi.objectId = require("joi-objectid")(Joi);
 const pattern = "/^[0-9+]{7}-[0-9+]{1}$/"
@@ -79,12 +81,13 @@ exports.validateTokenSchema = Joi.object().keys({
 exports.getSharpCarsSchema = Joi.object().keys({
   status: Joi.string()
     .valid(
-      "pending",
-      "delivered",
-      "active",
-      "all"
+      carPickUpStatus.ARRIVED_AT_HUB,
+      carPickUpStatus.BASE,
+      carPickUpStatus.MOVING_TO_HUB,
+      carPickUpStatus.PICKED_UP_BY_DRIVER,
     )
     .allow(null)
+    .allow("")
     .optional(),
   limit: Joi.number().optional(),
   page: Joi.number().optional(),
