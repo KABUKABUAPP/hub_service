@@ -427,6 +427,7 @@ exports.getAssignedSharpCarsController = async (req, res, next) => {
     const payload = {
       inspector: req.user,
       status: req?.query?.status,
+      search: req?.query?.search,
       limit: req.query.limit,
       page: req.query.page,
     }
