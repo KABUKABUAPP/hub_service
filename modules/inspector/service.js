@@ -811,13 +811,15 @@ exports.getAssignedSharpCars = async (payload) => {
       inspector,
       status,
       limit,
-      page
+      page,
+      search
     } = payload
     const axiosResponse = await axiosRequestFunction({
       method: "get",
       url: `${config_env.RIDE_SERVICE_BASE_URL}/car/get-sharp-cars-from-hub-service`,
       params: {
         status: status,
+        ...(search && { search }),
         inspector_id: String(inspector?._id),
         hub_id: String(inspector?.assigned_hub),
         limit: limit ? limit : "10",
