@@ -106,10 +106,12 @@ exports.fetchAssignedHubDetails = async (id) => {
     const hubDetails = {
       first_name: availableInspector?.first_name || "",
       last_name: availableInspector?.last_name || "",
+      inspector_id: availableInspector?._id || "",
       phone_number: availableInspector?.phone_number || "",
       address: availableInspector?.assigned_hub?.address || "",
       city: availableInspector?.assigned_hub?.city || "",
       state: availableInspector?.assigned_hub?.state || "",
+      hub_id: id || "",
     }
 
 
