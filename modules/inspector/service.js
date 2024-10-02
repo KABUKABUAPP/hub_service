@@ -40,6 +40,7 @@ const config_env = require("../../config_env");
 const { messaging } = require("../../helpers/constants");
 const { updateHubInspections } = require("../hub/service");
 const { genOtp, validateOTP } = require("../otp/service");
+const hub = require("../../models/hub");
 //const { sendQueue } = require('../queues/index');
 
 exports.login = async (payload) => {
@@ -161,10 +162,13 @@ exports.viewProfile = async (payload) => {
     const cars_processed = await InspectionDetails.find({ inspector: user?._id }).countDocuments()
     const cars_approved = await InspectionDetails.find({ inspector: user?._id, status: "approved" }).countDocuments()
     const cars_declined = await InspectionDetails.find({ inspector: user?._id, status: "declined" }).countDocuments()
+    const hub_details = await hub.findById(user.assigned_hub)
     user.cars_processed = cars_processed
     user.cars_approved = cars_approved
     user.cars_declined = cars_declined
+    user.assigned_hub = hub_details
     user.save()
+
 
     return {
       status: "success",
