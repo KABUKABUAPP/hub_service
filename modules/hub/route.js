@@ -2,12 +2,13 @@ const { Router } = require("express");
 
 // const { auth } = require("../../isAuthenticated");
 const { authTest } = require("../../middlewares/auth");
-const { 
-  fetchUser, 
-  fetchUserById, 
-  fetchHubsByLocationController, 
+const {
+  fetchUser,
+  fetchUserById,
+  fetchHubsByLocationController,
   fetchAssignedHubDetailsController,
-  fetchHubByIdController
+  fetchHubByIdController,
+  fetchHubsController,
 } = require("./controller");
 const validateRequest = require("../../middlewares/validateRequest");
 const { fetchHubByLocationSchema, modelIdSchema } = require("./schema");
@@ -20,6 +21,12 @@ router.get(
   "/fetch",
   validateRequest(fetchHubByLocationSchema, "query"),
   fetchHubsByLocationController
+);
+
+router.get(
+  "/fetch-hubs",
+  validateRequest(fetchHubByLocationSchema, "query"),
+  fetchHubsController
 );
 
 router.get(
