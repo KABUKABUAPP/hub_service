@@ -17,7 +17,18 @@ const schema = new mongoose.Schema(
     cars_approved: { type: Number, default: 0 },
     cars_declined: { type: Number, default: 0 },
     deleted: { type: Boolean, default: false },
-    opening_hours: [{ day: String, open: String, close: String }],
+    opening_hours: {
+      type: [{ day: String, open: String, close: String }],
+      default: [
+        { day: "MONDAY", opensAt: "09:00 AM", closesAt: "06:00 PM" },
+        { day: "TUESDAY", opensAt: "09:00 AM", closesAt: "06:00 PM" },
+        { day: "WEDNESDAY", opensAt: "09:00 AM", closesAt: "06:00 PM" },
+        { day: "THURSDAY", opensAt: "09:00 AM", closesAt: "06:00 PM" },
+        { day: "FRIDAY", opensAt: "09:00 AM", closesAt: "06:00 PM" },
+        { day: "SATURDAY", opensAt: "09:00 AM", closesAt: "06:00 PM" },
+        { day: "SUNDAY", opensAt: "09:00 AM", closesAt: "06:00 PM" },
+      ],
+    },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
