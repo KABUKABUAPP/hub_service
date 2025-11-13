@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: hub_service_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: hub_service_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - hub_service_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: hub_service_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hub_service_network
+    command: redis-server --appendonly yes
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hub_service_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - hub_service_network
+
+  # Main Application
+  hub_service:
+    build: .
+    container_name: hub_service_app
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      MONGO_URI: mongodb://root:password123@mongodb:27017/hub_service_db?authSource=admin
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CLOUDAMQP_URL: amqp://admin:password123@rabbitmq:5672
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+    networks:
+      - hub_service_network
+    volumes:
+      - ./uploads:/app/uploads
+
+networks:
+  hub_service_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:
+  rabbitmq_data:

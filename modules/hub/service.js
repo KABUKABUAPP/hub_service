@@ -23,32 +23,27 @@ const { Hub, InspectionDetails, Inspector } = require("../../models");
 
 exports.updateHubInspections = async (payload) => {
   try {
-    const {
-      hub_id,
-      status,
-      driver_id
-    } = payload
-    const hub = await Hub.findById(hub_id)
+    const { hub_id, status, driver_id } = payload;
+    const hub = await Hub.findById(hub_id);
     if (hub) {
-      const no_of_cars = await InspectionDetails.find({ hub: hub_id }).countDocuments()
-      const no_of_cars_processed = await InspectionDetails.find({ hub: hub_id, status: status }).countDocuments()
+      const no_of_cars = await InspectionDetails.find({
+        hub: hub_id,
+      }).countDocuments();
+      const no_of_cars_processed = await InspectionDetails.find({
+        hub: hub_id,
+        status: status,
+      }).countDocuments();
       if (status === "approved") {
-        await Hub.findByIdAndUpdate(hub_id,
-          {
-            cars_processed: no_of_cars,
-            cars_approved: no_of_cars_processed
-          }
-
-        )
+        await Hub.findByIdAndUpdate(hub_id, {
+          cars_processed: no_of_cars,
+          cars_approved: no_of_cars_processed,
+        });
       }
       if (status === "declined") {
-        await Hub.findByIdAndUpdate(hub_id,
-          {
-            cars_processed: no_of_cars,
-            cars_declined: no_of_cars_processed
-          }
-
-        )
+        await Hub.findByIdAndUpdate(hub_id, {
+          cars_processed: no_of_cars,
+          cars_declined: no_of_cars_processed,
+        });
       }
     }
     return true;
@@ -58,25 +53,82 @@ exports.updateHubInspections = async (payload) => {
   }
 };
 
-
 exports.fetchHubByLocationService = async (payload) => {
   try {
-    const {
-      city, state
-    } = payload
-    let foundHub
-    const stateHub = state ? await Hub.findOne({ state: { $regex: state, $options: "i" }, deleted: false }) : undefined
-    const cityHub = city ? await Hub.findOne({ city: { $regex: city, $options: "i" }, deleted: false }) : undefined
-    foundHub = cityHub ? cityHub : stateHub ? stateHub : await Hub.findOne({})
+    const { city, state } = payload;
+    let foundHub;
+    const stateHub = state
+      ? await Hub.findOne({
+          state: { $regex: state, $options: "i" },
+          deleted: false,
+        })
+      : undefined;
+    const cityHub = city
+      ? await Hub.findOne({
+          city: { $regex: city, $options: "i" },
+          deleted: false,
+        })
+      : undefined;
+    foundHub = cityHub ? cityHub : stateHub ? stateHub : await Hub.findOne({});
     if (!foundHub) {
       return {
         status: "error",
         code: HTTP_NOT_FOUND,
-        message: 'Hub Not Found',
-      }
+        message: "Hub Not Found",
+      };
     }
 
-    console.log("FETCHED HUB>>>>>>>", foundHub)
+    console.log("FETCHED HUB>>>>>>>", foundHub);
+
+    return {
+      status: "success",
+      code: HTTP_OK,
+      message: "hub fetched successfully",
+      data: foundHub,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      status: "error",
+      message: error?.message,
+      data: error.toString(),
+      code: HTTP_SERVER_ERROR,
+    };
+  }
+};
+
+exports.fetchHubsService = async (payload) => {
+  try {
+    const { city, state } = payload;
+    let foundHub = [];
+
+    foundHub = city
+      ? await Hub.find({
+          city: { $regex: city, $options: "i" },
+          deleted: false,
+        })
+      : undefined;
+
+    if (!foundHub || foundHub.length === 0) {
+      foundHub = await Hub.find({
+        state: { $regex: state, $options: "i" },
+        deleted: false,
+      });
+    }
+
+    if (!foundHub || foundHub.length === 0) {
+      foundHub = cityHub ? cityHub : stateHub ? stateHub : await Hub.find({});
+    }
+
+    // if (!foundHub.length) {
+    //   return {
+    //     status: "error",
+    //     code: HTTP_NOT_FOUND,
+    //     message: "Hub Not Found",
+    //   };
+    // }
+
+    // console.log("FETCHED HUB>>>>>>>", foundHub);
 
     return {
       status: "success",
@@ -98,21 +150,21 @@ exports.fetchHubByLocationService = async (payload) => {
 exports.fetchAssignedHubDetails = async (id) => {
   try {
     const availableInspector = await Inspector.findOne({
-      assigned_hub: id
+      assigned_hub: id,
     }).populate({
       path: "assigned_hub",
-      select: 'name address city state'
-    })
+      select: "name address city state",
+    });
     const hubDetails = {
       first_name: availableInspector?.first_name || "",
       last_name: availableInspector?.last_name || "",
+      inspector_id: availableInspector?._id || "",
       phone_number: availableInspector?.phone_number || "",
       address: availableInspector?.assigned_hub?.address || "",
       city: availableInspector?.assigned_hub?.city || "",
       state: availableInspector?.assigned_hub?.state || "",
-    }
-
-
+      hub_id: id || "",
+    };
 
     return {
       status: "success",
@@ -133,20 +185,20 @@ exports.fetchAssignedHubDetails = async (id) => {
 
 exports.fetchHubByIdService = async (hub_id) => {
   try {
-
-    const foundHub = await Hub.findOne({ _id: hub_id, deleted: false })
-      .select(" _id name address city state country hub_images inspector deleted ")
+    const foundHub = await Hub.findOne({ _id: hub_id, deleted: false }).select(
+      " _id name address city state country hub_images inspector deleted "
+    );
     if (!foundHub) {
       return {
         status: "error",
         code: HTTP_NOT_FOUND,
-        message: 'Hub Not Found',
-      }
+        message: "Hub Not Found",
+      };
     }
 
-    const inspectors = await Inspector.find({ assigned_hub: hub_id })
-      .select("_id first_name last_name phone_number email deleted ")
-
+    const inspectors = await Inspector.find({ assigned_hub: hub_id }).select(
+      "_id first_name last_name phone_number email deleted "
+    );
 
     return {
       status: "success",
@@ -154,8 +206,8 @@ exports.fetchHubByIdService = async (hub_id) => {
       message: "hub fetched successfully",
       data: {
         hub_details: foundHub,
-        inspectors: inspectors
-      }
+        inspectors: inspectors,
+      },
     };
   } catch (error) {
     console.log(error);
